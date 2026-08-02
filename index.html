@@ -42,6 +42,7 @@
         .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 0.9em; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: white; outline: none; transition: border 0.3s; }
         .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
+        .form-group input[readonly] { background-color: #f0f0f0; color: #666; cursor: not-allowed; border-color: #ddd; }
 
         /* BUTTONS */
         .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
@@ -58,7 +59,7 @@
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
         .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; /* hidden by default */ }
+        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; }
         .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; }
         .tab-content { display: none; }
         
@@ -92,10 +93,9 @@
             <div class="login-card">
                 <h2>System Login</h2>
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
+                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests.<br><br>
                     <strong>Default Passwords:</strong><br>
-                    Admin: <code>admin123</code><br>
-                    Class Teacher: <code>class123</code><br>
-                    Subject Teacher: <code>subject123</code>
+                    Admin: <code>admin123</code> | Tr: <code>class123</code> / <code>subject123</code>
                 </div>
                 <div class="form-group">
                     <label>Your Name</label>
@@ -156,7 +156,9 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
                             <thead>
                                 <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">ID</th>
                                     <th style="padding: 12px; color: #4a148c;">Teacher Name</th>
+                                    <th style="padding: 12px; color: #4a148c;">Subject</th>
                                     <th style="padding: 12px; color: #4a148c;">Role</th>
                                     <th style="padding: 12px; color: #4a148c;">Date</th>
                                     <th style="padding: 12px; color: #4a148c;">Reason</th>
@@ -165,7 +167,7 @@
                                 </tr>
                             </thead>
                             <tbody id="adminLeaveRequestsBody">
-                                <tr><td colspan="6" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                                <tr><td colspan="8" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -176,12 +178,25 @@
             <div class="tab-content" id="leave">
                 <div class="card">
                     <h3>Apply for Leave</h3>
+                    <div class="info-box">Your details have been automatically filled from the system database.</div>
                     <div class="grid-2">
+                        <div class="form-group">
+                            <label>Teacher ID</label>
+                            <input type="text" id="leaveTeacherId" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Teacher Name</label>
+                            <input type="text" id="leaveTeacherName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Teaching Subject</label>
+                            <input type="text" id="leaveTeacherSubject" readonly>
+                        </div>
                         <div class="form-group">
                             <label>Leave Date</label>
                             <input type="date" id="leaveDateInput">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="grid-column: 1 / -1;">
                             <label>Reason for Leave</label>
                             <input type="text" id="leaveReasonInput" placeholder="e.g. Medical, Personal Matter">
                         </div>
@@ -399,7 +414,8 @@
             "subject_teacher": "subject123"
         };
 
-        let currentUser = { name: "", role: "" };
+        // Added teacherId and subject to currentUser state
+        let currentUser = { name: "", role: "", teacherId: "N/A", subject: "N/A" };
 
         window.onload = function() {
             loadAllClasses();
@@ -423,12 +439,37 @@
             if (!name) return alert("Please enter your name!");
             if (!role) return alert("Please select a role!");
             if (!password) return alert("Please enter the password!");
-
             if (password !== rolePasswords[role]) return alert("Incorrect Password! Please try again.");
 
             currentUser.name = name;
             currentUser.role = role;
 
+            // Fetch Teacher info to auto-fill leave requests
+            database.ref('teachers').once('value', snapshot => {
+                let found = false;
+                snapshot.forEach(child => {
+                    const t = child.val();
+                    if (t.name === name) {
+                        currentUser.teacherId = t.teacherId;
+                        currentUser.subject = t.subject;
+                        found = true;
+                    }
+                });
+                
+                if (!found && role !== 'admin') {
+                    alert("Warning: Your profile was not found in the Teachers database. Leave request auto-fill might show N/A.");
+                }
+
+                // Fill Readonly inputs in Leave form
+                document.getElementById('leaveTeacherId').value = currentUser.teacherId;
+                document.getElementById('leaveTeacherName').value = currentUser.name;
+                document.getElementById('leaveTeacherSubject').value = currentUser.subject;
+                
+                finalizeLogin(role, name);
+            });
+        }
+
+        function finalizeLogin(role, name) {
             let roleDisplay = (role === 'admin') ? "Admin" : (role === 'class_teacher' ? "Class Teacher" : "Subject Teacher");
             document.getElementById('roleBadge').innerText = `${name} (${roleDisplay})`;
             
@@ -481,11 +522,17 @@
         function submitLeaveRequest() {
             const date = document.getElementById('leaveDateInput').value;
             const reason = document.getElementById('leaveReasonInput').value.trim();
+            const tId = document.getElementById('leaveTeacherId').value;
+            const tName = document.getElementById('leaveTeacherName').value;
+            const tSub = document.getElementById('leaveTeacherSubject').value;
 
             if (!date || !reason) return alert("Please select a date and enter a reason!");
+            if (tId === "N/A") return alert("Error: Cannot submit. Your Teacher profile is missing in the system.");
 
             database.ref('leaveRequests').push({
-                name: currentUser.name,
+                teacherId: tId,
+                name: tName,
+                subject: tSub,
                 role: currentUser.role,
                 date: date,
                 reason: reason,
@@ -545,7 +592,7 @@
                 tbody.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
                     return;
                 }
 
@@ -571,7 +618,9 @@
 
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td>
                             <td style="padding: 12px; font-weight: 500;">${req.name}</td>
+                            <td style="padding: 12px;">${req.subject || 'N/A'}</td>
                             <td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
                             <td style="padding: 12px;">${req.date}</td>
                             <td style="padding: 12px;">${req.reason}</td>
@@ -592,7 +641,7 @@
         }
 
 
-        // --- UTILITY & DATA FUNCTIONS (Remaining existing code) ---
+        // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
             classDropdownIds.forEach(id => {
@@ -670,7 +719,6 @@
             }
         }
 
-        // Submits, loading grids etc (Subject, Student, Attendance, Teacher) remains the same
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
