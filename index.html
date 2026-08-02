@@ -93,7 +93,6 @@
             <div class="login-card">
                 <h2>System Login</h2>
                 
-                <!-- Updated Note without default passwords -->
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
                     <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests.
                 </div>
@@ -116,6 +115,11 @@
                     <input type="password" id="loginPassword" placeholder="Enter password">
                 </div>
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
+                
+                <!-- Developer Credit on Login Page -->
+                <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
+                    Developer - Kelum Konara | 0714469232
+                </div>
             </div>
         </div>
 
@@ -134,19 +138,19 @@
             <!-- DASHBOARD TAB (Admin Only) -->
             <div class="tab-content" id="dashboard">
                 <div class="card">
-                    <h3>System Overview</h3>
+                    <h3>Real-time System Overview</h3>
                     <div class="grid-3">
                         <div class="info-box" style="text-align:center; background: #e8eaf6; border-left-color: #3f51b5; color: #1a237e;">
-                            <h2 style="font-size: 2em; margin-bottom: 5px;">👨‍🏫</h2>
-                            <p>Manage Staff</p>
+                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-teachers-count">0</h2>
+                            <p style="font-weight: 600;">Total Teachers</p>
                         </div>
                         <div class="info-box" style="text-align:center; background: #e0f2f1; border-left-color: #009688; color: #004d40;">
-                            <h2 style="font-size: 2em; margin-bottom: 5px;">👥</h2>
-                            <p>Manage Students</p>
+                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-students-count">0</h2>
+                            <p style="font-weight: 600;">Total Students</p>
                         </div>
                         <div class="info-box" style="text-align:center; background: #fff3e0; border-left-color: #ff9800; color: #e65100;">
-                            <h2 style="font-size: 2em; margin-bottom: 5px;">📋</h2>
-                            <p>Track Attendance</p>
+                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-attendance-count">0</h2>
+                            <p style="font-weight: 600;">Today's Present</p>
                         </div>
                     </div>
                 </div>
@@ -393,7 +397,7 @@
             </div>
 
             <div class="footer-credit">
-                Developer - Kelum Koonara | Smart soft | 0714469232
+                Developer - Kelum Konara | 0714469232
             </div>
         </div>
     </div>
@@ -422,6 +426,7 @@
             loadAllClasses();
             fetchDataFromFirebase();
             loadTeacherList();
+            loadDashboardStats(); // Load real-time stats
             
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -430,6 +435,54 @@
             document.getElementById('attendanceDate').value = `${yyyy}-${mm}-${dd}`;
             document.getElementById('leaveDateInput').value = `${yyyy}-${mm}-${dd}`;
         };
+
+        // --- DASHBOARD REAL-TIME STATS ---
+        function loadDashboardStats() {
+            // 1. Total Teachers
+            database.ref('teachers').on('value', snap => {
+                let count = 0;
+                if(snap.exists()) {
+                    count = Object.keys(snap.val()).length;
+                }
+                document.getElementById('dash-teachers-count').innerText = count;
+            });
+
+            // 2. Total Students
+            database.ref('students').on('value', snap => {
+                let count = 0;
+                if(snap.exists()) {
+                    snap.forEach(gradeSnap => {
+                        count += Object.keys(gradeSnap.val()).length;
+                    });
+                }
+                document.getElementById('dash-students-count').innerText = count;
+            });
+
+            // 3. Today's Present Attendance
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+
+            database.ref(`attendance/${dateStr}`).on('value', snap => {
+                let presentCount = 0;
+                if(snap.exists()) {
+                    snap.forEach(gradeSnap => {
+                        gradeSnap.forEach(subSnap => {
+                            subSnap.forEach(periodSnap => {
+                                periodSnap.forEach(studentSnap => {
+                                    if(studentSnap.val().status === 'Present') {
+                                        presentCount++;
+                                    }
+                                });
+                            });
+                        });
+                    });
+                }
+                document.getElementById('dash-attendance-count').innerText = presentCount;
+            });
+        }
 
         // --- LOGIN & ROLE PERMISSIONS ---
         function login() {
@@ -638,6 +691,7 @@
                 database.ref('leaveRequests/' + id).update({ status: status });
             }
         }
+
 
         // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
