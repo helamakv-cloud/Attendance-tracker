@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker </title>
+    <title>Smart Attendance Tracker - Firebase Edition</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -52,6 +52,7 @@
         .btn-success { background: #2e7d32; color: white; }
         .btn-success:hover { background: #1b5e20; }
         .btn-danger { background: #c62828; color: white; }
+        .btn-danger:hover { background: #b71c1c; }
         
         /* BOXES, TABS & COLORFUL DASHBOARD */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
@@ -91,7 +92,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Realtime Database</p>
+            <p>Connected with Firebase Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -229,9 +230,18 @@
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
-                    <h3>📋 Attendance Results</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3>📋 Attendance Results</h3>
+                        
+                        <!-- Print & PDF Action Buttons -->
+                        <div id="attendanceExportBtns" style="display: none; gap: 10px;">
+                            <button class="btn btn-primary" style="margin-bottom: 0; padding: 8px 15px;" onclick="printAttendance()">🖨️ Print</button>
+                            <button class="btn btn-danger" style="margin-bottom: 0; padding: 8px 15px;" onclick="downloadPDF()">📄 Download PDF</button>
+                        </div>
+                    </div>
+
                     <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                        <table id="viewAttendanceTable" style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
                             <thead>
                                 <tr style="background: #e3f2fd; border-bottom: 2px solid #1976d2;">
                                     <th style="padding: 12px; color: #0d47a1;">Student ID</th>
@@ -353,7 +363,7 @@
                                 <option value="">Select Class</option>
                             </select>
                         </div>
-                        <!-- NEW: Student ID Input -->
+                        <!-- Student ID as requested -->
                         <div class="form-group">
                             <label>Student ID (ශිෂ්‍ය අංකය)</label>
                             <input type="text" id="studentIdInput" placeholder="e.g. S001">
@@ -401,7 +411,7 @@
                 </div>
             </div>
 
-            <!-- SUBJECTS TAB -->
+            <!-- SUBJECTS TAB (Restored purely without Subject ID) -->
             <div class="tab-content" id="subjects">
                 <div class="card">
                     <h3>📚 Manage Subjects (Firebase Database)</h3>
@@ -553,7 +563,7 @@
             });
         }
 
-        // --- VIEW ATTENDANCE LOGIC ---
+        // --- VIEW ATTENDANCE LOGIC (WITH PRINT/PDF) ---
         function filterViewSubjects() {
             const selectedClass = document.getElementById('viewAttClass').value;
             const subjectSelect = document.getElementById('viewAttSubject');
@@ -587,15 +597,21 @@
             }
 
             const tbody = document.getElementById('viewAttendanceBody');
+            const exportBtns = document.getElementById('attendanceExportBtns');
+            
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">Loading real-time data...</td></tr>';
+            exportBtns.style.display = 'none';
 
-            // Real-time listener for the selected path
+            // Real-time listener
             database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).on('value', snap => {
                 tbody.innerHTML = '';
                 if (!snap.exists()) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color: #c62828;">No attendance record found for this selection.</td></tr>';
+                    exportBtns.style.display = 'none';
                     return;
                 }
+
+                exportBtns.style.display = 'flex'; // Show Print & PDF buttons
 
                 snap.forEach(child => {
                     const studentId = child.key;
@@ -617,6 +633,68 @@
                     `;
                 });
             });
+        }
+
+        // HTML Print Function
+        function printAttendance() {
+            const dateStr = document.getElementById('viewAttDate').value;
+            const grade = document.getElementById('viewAttClass').value;
+            const subject = document.getElementById('viewAttSubject').value;
+            const period = document.getElementById('viewAttPeriod').value;
+
+            const printContents = document.getElementById('viewAttendanceTable').outerHTML;
+            const printWindow = window.open('', '', 'height=600,width=800');
+            
+            printWindow.document.write('<html><head><title>Attendance Report</title>');
+            printWindow.document.write(`
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+                    h2 { color: #6a1b9a; margin-bottom: 5px; }
+                    p { font-size: 14px; color: #555; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                    th { background-color: #f3e5f5; color: #4a148c; }
+                </style>
+            `);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(`<h2>Smart Attendance Report</h2>`);
+            printWindow.document.write(`<p><strong>Date:</strong> ${dateStr} | <strong>Class:</strong> ${grade} | <strong>Subject:</strong> ${subject} | <strong>Period:</strong> ${period}</p>`);
+            printWindow.document.write(printContents);
+            printWindow.document.write('</body></html>');
+            
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => { printWindow.print(); }, 500); 
+        }
+
+        // PDF Download Function
+        function downloadPDF() {
+            const dateStr = document.getElementById('viewAttDate').value;
+            const grade = document.getElementById('viewAttClass').value;
+            const subject = document.getElementById('viewAttSubject').value;
+            const period = document.getElementById('viewAttPeriod').value;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.setTextColor(74, 20, 140);
+            doc.text('Smart Attendance Report', 14, 20);
+            
+            doc.setFontSize(11);
+            doc.setTextColor(85, 85, 85);
+            doc.text(`Date: ${dateStr}      Class: ${grade}`, 14, 30);
+            doc.text(`Subject: ${subject}      Period: ${period}`, 14, 36);
+
+            doc.autoTable({
+                html: '#viewAttendanceTable',
+                startY: 42,
+                theme: 'grid',
+                headStyles: { fillColor: [106, 27, 154] },
+                styles: { fontSize: 10 }
+            });
+
+            doc.save(`Attendance_${grade}_${dateStr}.pdf`);
         }
 
         // --- LOGIN & ROLE PERMISSIONS ---
@@ -835,7 +913,6 @@
                 const data = snapshot.val();
                 if (data) schoolData = data;
                 else {
-                    // Added Daily School Attendance to default subjects
                     const juniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
                     const seniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
                     schoolData = { "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects] };
@@ -856,7 +933,6 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    // Force update old ICT tags
                     if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") {
                         subject = "Information and Communication Technology (ICT)";
                     }
@@ -872,7 +948,7 @@
 
         function loadUniqueSubjects() {
             const subjectSet = new Set();
-            subjectSet.add("Daily School Attendance"); // Add Manually
+            subjectSet.add("Daily School Attendance");
 
             for (const grade in schoolData) {
                 schoolData[grade].forEach(sub => {
@@ -894,9 +970,11 @@
             }
         }
 
+        // ADD NEW SUBJECT 
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
+            
             if (!className) return alert("Please select a class!");
             if (!subjectName) return alert("Please enter the subject name!");
 
@@ -905,12 +983,15 @@
                 schoolData[className].push(subjectName);
                 database.ref('schoolData').set(schoolData, (error) => {
                     if (error) alert("Error saving data: " + error.message);
-                    else { alert("Subject successfully added!"); document.getElementById('newSubjectName').value = ''; }
+                    else { 
+                        alert("Subject successfully added!"); 
+                        document.getElementById('newSubjectName').value = ''; 
+                    }
                 });
             } else alert("This subject already exists in the selected class.");
         }
 
-        // ADD NEW STUDENT - UPDATED TO USE CUSTOM STUDENT ID AS KEY
+        // ADD NEW STUDENT - WITH STUDENT ID
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const studentId = document.getElementById('studentIdInput').value.trim();
@@ -920,7 +1001,6 @@
             
             if (!grade || !studentId || !name) return alert("Please select a class, enter Student ID and Name!");
 
-            // Check if student ID already exists in that grade
             database.ref(`students/${grade}/${studentId}`).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     alert("A student with this ID already exists in this class!");
@@ -943,7 +1023,7 @@
             });
         }
 
-        // LOAD STUDENT LIST - UPDATED TO SHOW CUSTOM STUDENT ID
+        // LOAD STUDENT LIST - WITH STUDENT ID
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
@@ -955,7 +1035,7 @@
                 if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
-                    const studentId = childSnapshot.key; // This is now the custom Student ID
+                    const studentId = childSnapshot.key; 
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
                             <td style="padding: 12px; font-weight: bold; color: #4a148c;">${studentId}</td>
@@ -1011,7 +1091,7 @@
         }
         function removeTeacher(key) { if (confirm("Remove this teacher?")) database.ref(`teachers/${key}`).remove(); }
 
-        // Attendance
+        // Attendance Marking Logic
         function loadStudentsForAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
