@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker - Firebase Edition</title>
+    <title>Smart Attendance Tracker</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -53,11 +53,19 @@
         .btn-success:hover { background: #1b5e20; }
         .btn-danger { background: #c62828; color: white; }
         
-        /* BOXES & TABS */
+        /* BOXES, TABS & COLORFUL DASHBOARD */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
         .info-box.alert { background: #ffebee; color: #c62828; border-left-color: #c62828; }
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
+        /* Colorful Dashboard Cards */
+        .dash-box { padding: 25px 15px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .dash-box:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.2); }
+        .dash-teachers { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .dash-students { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .dash-present { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); }
+        .dash-title { font-size: 1.1em; font-weight: 600; opacity: 0.9; margin-top: 5px; }
+
         .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
         .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; }
         .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; }
@@ -83,7 +91,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Firebase Realtime Database</p>
+            <p>Connected with Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -129,33 +137,34 @@
             <div class="nav-tabs" id="navTabs">
                 <button class="nav-tab" id="tab-btn-dashboard" onclick="showTab('dashboard')">📊 Dashboard</button>
                 <button class="nav-tab" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
+                <button class="nav-tab" id="tab-btn-view-attendance" onclick="showTab('view-attendance')">👁️ View Attendance</button>
                 <button class="nav-tab" id="tab-btn-students" onclick="showTab('students')">👥 Students</button>
                 <button class="nav-tab" id="tab-btn-subjects" onclick="showTab('subjects')">📚 Subjects</button>
                 <button class="nav-tab" id="tab-btn-teachers" onclick="showTab('teachers')">👨‍🏫 Teachers</button>
                 <button class="nav-tab" id="tab-btn-leave" onclick="showTab('leave')">📩 Leave Request</button>
             </div>
 
-            <!-- DASHBOARD TAB (Admin Only) -->
+            <!-- DASHBOARD TAB (Colorful) -->
             <div class="tab-content" id="dashboard">
-                <div class="card">
-                    <h3>Real-time System Overview</h3>
+                <div class="card" style="background: transparent; border: none; padding: 0;">
+                    <h3 style="margin-bottom: 20px; color: #333;">Real-time System Overview</h3>
                     <div class="grid-3">
-                        <div class="info-box" style="text-align:center; background: #e8eaf6; border-left-color: #3f51b5; color: #1a237e;">
-                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-teachers-count">0</h2>
-                            <p style="font-weight: 600;">Total Teachers</p>
+                        <div class="dash-box dash-teachers">
+                            <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-teachers-count">0</h2>
+                            <p class="dash-title">👨‍🏫 Total Teachers</p>
                         </div>
-                        <div class="info-box" style="text-align:center; background: #e0f2f1; border-left-color: #009688; color: #004d40;">
-                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-students-count">0</h2>
-                            <p style="font-weight: 600;">Total Students</p>
+                        <div class="dash-box dash-students">
+                            <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-students-count">0</h2>
+                            <p class="dash-title">👥 Total Students</p>
                         </div>
-                        <div class="info-box" style="text-align:center; background: #fff3e0; border-left-color: #ff9800; color: #e65100;">
-                            <h2 style="font-size: 2.5em; margin-bottom: 5px;" id="dash-attendance-count">0</h2>
-                            <p style="font-weight: 600;">Today's Present</p>
+                        <div class="dash-box dash-present">
+                            <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-attendance-count">0</h2>
+                            <p class="dash-title">📋 Today's Present</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card" style="margin-top: 25px;">
                     <h3>Pending Leave Requests</h3>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
@@ -173,6 +182,65 @@
                             </thead>
                             <tbody id="adminLeaveRequestsBody">
                                 <tr><td colspan="8" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW ATTENDANCE TAB (NEW) -->
+            <div class="tab-content" id="view-attendance">
+                <div class="card">
+                    <h3>👁️ Real-time Attendance Viewer</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="viewAttDate">
+                        </div>
+                        <div class="form-group">
+                            <label>Select Class</label>
+                            <select id="viewAttClass" onchange="filterViewSubjects()">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Subject</label>
+                            <select id="viewAttSubject">
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Period</label>
+                            <select id="viewAttPeriod">
+                                <option value="">Select Period</option>
+                                <option value="Daily Attendance">🏫 Daily School Attendance</option>
+                                <option value="1">1st Period</option>
+                                <option value="2">2nd Period</option>
+                                <option value="3">3rd Period</option>
+                                <option value="4">4th Period</option>
+                                <option value="5">5th Period</option>
+                                <option value="6">6th Period</option>
+                                <option value="7">7th Period</option>
+                                <option value="8">8th Period</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="fetchAttendanceData()">Load Attendance Data</button>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3>📋 Attendance Results</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                            <thead>
+                                <tr style="background: #e3f2fd; border-bottom: 2px solid #1976d2;">
+                                    <th style="padding: 12px; color: #0d47a1;">Student Name</th>
+                                    <th style="padding: 12px; text-align: center; color: #0d47a1;">Status</th>
+                                    <th style="padding: 12px; text-align: right; color: #0d47a1;">Marked By</th>
+                                </tr>
+                            </thead>
+                            <tbody id="viewAttendanceBody">
+                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select options and click Load</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -413,7 +481,6 @@
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         
-        // Passwords kept in code for authentication but hidden from UI
         const rolePasswords = {
             "admin": "admin123",
             "class_teacher": "class123",
@@ -426,39 +493,35 @@
             loadAllClasses();
             fetchDataFromFirebase();
             loadTeacherList();
-            loadDashboardStats(); // Load real-time stats
+            loadDashboardStats(); 
             
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
-            document.getElementById('attendanceDate').value = `${yyyy}-${mm}-${dd}`;
-            document.getElementById('leaveDateInput').value = `${yyyy}-${mm}-${dd}`;
+            const formattedToday = `${yyyy}-${mm}-${dd}`;
+            
+            document.getElementById('attendanceDate').value = formattedToday;
+            document.getElementById('leaveDateInput').value = formattedToday;
+            document.getElementById('viewAttDate').value = formattedToday;
         };
 
         // --- DASHBOARD REAL-TIME STATS ---
         function loadDashboardStats() {
-            // 1. Total Teachers
             database.ref('teachers').on('value', snap => {
                 let count = 0;
-                if(snap.exists()) {
-                    count = Object.keys(snap.val()).length;
-                }
+                if(snap.exists()) count = Object.keys(snap.val()).length;
                 document.getElementById('dash-teachers-count').innerText = count;
             });
 
-            // 2. Total Students
             database.ref('students').on('value', snap => {
                 let count = 0;
                 if(snap.exists()) {
-                    snap.forEach(gradeSnap => {
-                        count += Object.keys(gradeSnap.val()).length;
-                    });
+                    snap.forEach(gradeSnap => { count += Object.keys(gradeSnap.val()).length; });
                 }
                 document.getElementById('dash-students-count').innerText = count;
             });
 
-            // 3. Today's Present Attendance
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -472,15 +535,71 @@
                         gradeSnap.forEach(subSnap => {
                             subSnap.forEach(periodSnap => {
                                 periodSnap.forEach(studentSnap => {
-                                    if(studentSnap.val().status === 'Present') {
-                                        presentCount++;
-                                    }
+                                    if(studentSnap.val().status === 'Present') presentCount++;
                                 });
                             });
                         });
                     });
                 }
                 document.getElementById('dash-attendance-count').innerText = presentCount;
+            });
+        }
+
+        // --- VIEW ATTENDANCE LOGIC ---
+        function filterViewSubjects() {
+            const selectedClass = document.getElementById('viewAttClass').value;
+            const subjectSelect = document.getElementById('viewAttSubject');
+            if (!subjectSelect) return;
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+            if (selectedClass && schoolData[selectedClass]) {
+                schoolData[selectedClass].forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                });
+            }
+        }
+
+        function fetchAttendanceData() {
+            const dateStr = document.getElementById('viewAttDate').value;
+            const grade = document.getElementById('viewAttClass').value;
+            const subject = document.getElementById('viewAttSubject').value;
+            const period = document.getElementById('viewAttPeriod').value;
+
+            if (!dateStr || !grade || !subject || !period) {
+                return alert("Please select Date, Class, Subject, and Period to view!");
+            }
+
+            const tbody = document.getElementById('viewAttendanceBody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Loading real-time data...</td></tr>';
+
+            // Real-time listener for the selected path
+            database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).on('value', snap => {
+                tbody.innerHTML = '';
+                if (!snap.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color: #c62828;">No attendance record found for this selection.</td></tr>';
+                    return;
+                }
+
+                snap.forEach(child => {
+                    const student = child.val();
+                    const statusColor = student.status === 'Present' ? '#2e7d32' : '#c62828';
+                    const statusBg = student.status === 'Present' ? '#e8f5e9' : '#ffebee';
+                    
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 500;">${student.name}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${student.status}</span>
+                            </td>
+                            <td style="padding: 12px; text-align: right; color: #666; font-size: 0.85em;">
+                                By: ${student.markedBy || 'N/A'}
+                            </td>
+                        </tr>
+                    `;
+                });
             });
         }
 
@@ -498,7 +617,6 @@
             currentUser.name = name;
             currentUser.role = role;
 
-            // Fetch Teacher info to auto-fill leave requests
             database.ref('teachers').once('value', snapshot => {
                 let found = false;
                 snapshot.forEach(child => {
@@ -514,7 +632,6 @@
                     alert("Warning: Your profile was not found in the Teachers database. Leave request auto-fill might show N/A.");
                 }
 
-                // Fill Readonly inputs in Leave form
                 document.getElementById('leaveTeacherId').value = currentUser.teacherId;
                 document.getElementById('leaveTeacherName').value = currentUser.name;
                 document.getElementById('leaveTeacherSubject').value = currentUser.subject;
@@ -539,17 +656,17 @@
         }
 
         function applyRolePermissions(role) {
-            const tabs = ['dashboard', 'attendance', 'students', 'subjects', 'teachers', 'leave'];
+            const tabs = ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers', 'leave'];
             tabs.forEach(tab => document.getElementById(`tab-btn-${tab}`).style.display = 'none');
 
             if (role === 'admin') {
-                ['dashboard', 'attendance', 'students', 'subjects', 'teachers'].forEach(t => 
+                ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers'].forEach(t => 
                     document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
                 );
                 showTab('dashboard');
                 loadAdminLeaveRequests();
             } else if (role === 'class_teacher') {
-                ['attendance', 'students', 'leave'].forEach(t => 
+                ['attendance', 'view-attendance', 'students', 'leave'].forEach(t => 
                     document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
                 );
                 showTab('attendance');
@@ -584,14 +701,7 @@
             if (tId === "N/A") return alert("Error: Cannot submit. Your Teacher profile is missing in the system.");
 
             database.ref('leaveRequests').push({
-                teacherId: tId,
-                name: tName,
-                subject: tSub,
-                role: currentUser.role,
-                date: date,
-                reason: reason,
-                status: 'Pending',
-                timestamp: Date.now()
+                teacherId: tId, name: tName, subject: tSub, role: currentUser.role, date: date, reason: reason, status: 'Pending', timestamp: Date.now()
             }, (error) => {
                 if (error) alert("Error: " + error.message);
                 else {
@@ -606,14 +716,11 @@
                 const tbody = document.getElementById('myLeaveRequestsBody');
                 tbody.innerHTML = '';
                 let hasRequests = false;
-
                 const requests = [];
+
                 snapshot.forEach(child => {
                     const req = child.val();
-                    if(req.name === currentUser.name) {
-                        requests.push(req);
-                        hasRequests = true;
-                    }
+                    if(req.name === currentUser.name) { requests.push(req); hasRequests = true; }
                 });
 
                 if (!hasRequests) {
@@ -627,11 +734,8 @@
                     let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px;">${req.date}</td>
-                            <td style="padding: 12px;">${req.reason}</td>
-                            <td style="padding: 12px; text-align:right;">
-                                <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span>
-                            </td>
+                            <td style="padding: 12px;">${req.date}</td><td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px; text-align:right;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span></td>
                         </tr>
                     `;
                 });
@@ -649,9 +753,7 @@
                 }
 
                 const requests = [];
-                snapshot.forEach(child => {
-                    requests.push({ id: child.key, ...child.val() });
-                });
+                snapshot.forEach(child => { requests.push({ id: child.key, ...child.val() }); });
                 requests.sort((a,b) => b.timestamp - a.timestamp);
                 
                 requests.forEach(req => {
@@ -664,21 +766,14 @@
                             <button onclick="updateLeaveStatus('${req.id}', 'Approved')" style="background: #2e7d32; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 0.8em;">Approve</button>
                             <button onclick="updateLeaveStatus('${req.id}', 'Rejected')" style="background: #c62828; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Reject</button>
                         `;
-                    } else {
-                        actionBtns = `<span style="color: #888; font-size:0.85em;">Resolved</span>`;
-                    }
+                    } else actionBtns = `<span style="color: #888; font-size:0.85em;">Resolved</span>`;
 
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td>
-                            <td style="padding: 12px; font-weight: 500;">${req.name}</td>
-                            <td style="padding: 12px;">${req.subject || 'N/A'}</td>
-                            <td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
-                            <td style="padding: 12px;">${req.date}</td>
-                            <td style="padding: 12px;">${req.reason}</td>
-                            <td style="padding: 12px;">
-                                <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight:bold;">${req.status}</span>
-                            </td>
+                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td><td style="padding: 12px; font-weight: 500;">${req.name}</td>
+                            <td style="padding: 12px;">${req.subject || 'N/A'}</td><td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
+                            <td style="padding: 12px;">${req.date}</td><td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight:bold;">${req.status}</span></td>
                             <td style="padding: 12px; text-align: right;">${actionBtns}</td>
                         </tr>
                     `;
@@ -687,15 +782,13 @@
         }
 
         function updateLeaveStatus(id, status) {
-            if(confirm(`Are you sure you want to mark this request as ${status}?`)) {
-                database.ref('leaveRequests/' + id).update({ status: status });
-            }
+            if(confirm(`Are you sure you want to mark this request as ${status}?`)) database.ref('leaveRequests/' + id).update({ status: status });
         }
 
 
         // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
-            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
+            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade', 'viewAttClass'];
             classDropdownIds.forEach(id => {
                 const selectElement = document.getElementById(id);
                 if (selectElement) {
@@ -724,18 +817,15 @@
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
-                    schoolData = data;
-                } else {
+                if (data) schoolData = data;
+                else {
                     const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
                     const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
-                    schoolData = {
-                        "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects],
-                        "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects]
-                    };
+                    schoolData = { "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects] };
                     database.ref('schoolData').set(schoolData);
                 }
                 filterSubjects();
+                filterViewSubjects();
                 loadUniqueSubjects(); 
             });
         }
