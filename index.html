@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker - Firebase Edition</title>
+    <title>Smart Attendance Tracker</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -91,7 +91,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Firebase Realtime Database</p>
+            <p>Connected with Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -124,7 +124,7 @@
                 </div>
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
-                <!-- Developer Credit on Login Page -->
+                <!-- Developer Credit -->
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
                     Developer - Kelum Konara | 0714469232
                 </div>
@@ -144,7 +144,7 @@
                 <button class="nav-tab" id="tab-btn-leave" onclick="showTab('leave')">📩 Leave Request</button>
             </div>
 
-            <!-- DASHBOARD TAB (Colorful) -->
+            <!-- DASHBOARD TAB -->
             <div class="tab-content" id="dashboard">
                 <div class="card" style="background: transparent; border: none; padding: 0;">
                     <h3 style="margin-bottom: 20px; color: #333;">Real-time System Overview</h3>
@@ -247,7 +247,7 @@
                 </div>
             </div>
 
-            <!-- LEAVE REQUEST TAB (Teachers Only) -->
+            <!-- LEAVE REQUEST TAB -->
             <div class="tab-content" id="leave">
                 <div class="card">
                     <h3>Apply for Leave</h3>
@@ -552,13 +552,20 @@
             const subjectSelect = document.getElementById('viewAttSubject');
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
+                    // Update old Sinhala ICT entries to English on the fly
+                    if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") {
+                        subject = "Information and Communication Technology (ICT)";
+                    }
+                    if(subject !== "Daily School Attendance") {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectSelect.appendChild(option);
+                    }
                 });
             }
         }
@@ -818,11 +825,11 @@
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) schoolData = data;
-                else {
-                    // Added Daily School Attendance to default subjects
-                    const juniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
-                    const seniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
+                if (data) {
+                    schoolData = data;
+                } else {
+                    const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
+                    const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Information and Communication Technology (ICT)", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
                     schoolData = { "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects] };
                     database.ref('schoolData').set(schoolData);
                 }
@@ -837,20 +844,36 @@
             const subjectSelect = document.getElementById('selectSubject');
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
+                    // Force update old ICT tags
+                    if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") {
+                        subject = "Information and Communication Technology (ICT)";
+                    }
+                    if(subject !== "Daily School Attendance") {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectSelect.appendChild(option);
+                    }
                 });
             }
         }
 
         function loadUniqueSubjects() {
             const subjectSet = new Set();
-            for (const grade in schoolData) schoolData[grade].forEach(sub => subjectSet.add(sub));
+            subjectSet.add("Daily School Attendance"); // Add Manually
+
+            for (const grade in schoolData) {
+                schoolData[grade].forEach(sub => {
+                    if(sub === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || sub === "ICT") {
+                        sub = "Information and Communication Technology (ICT)";
+                    }
+                    subjectSet.add(sub);
+                });
+            }
             const teacherSubjectSelect = document.getElementById('teacherSubject');
             if (teacherSubjectSelect) {
                 teacherSubjectSelect.innerHTML = '<option value="">Select Subject</option>';
