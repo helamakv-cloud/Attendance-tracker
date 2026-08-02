@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Attendance Tracker</title>
+    
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Chart.js for dashboard charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Firebase Compat SDK - REALTIME DATABASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        /* BASE RESET & DEEP PURPLE COLOR THEME */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4a148c 0%, #311b92 100%); min-height: 100vh; padding: 10px; }
+        
+        .container { background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 1200px; width: 100%; margin: 0 auto; overflow: hidden; }
+        
+        /* HEADER - Deep Purple Theme */
+        .header { background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%); color: white; padding: 20px 15px; text-align: center; position: relative; }
+        .header h1 { font-size: 1.5em; margin-bottom: 5px; margin-top: 35px; }
+        .header p { opacity: 0.9; font-size: 0.85em; }
+        
+        .role-badge { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75em; border: 1px solid white; white-space: nowrap; }
+        .logout-btn { position: absolute; top: 15px; right: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8em; transition: all 0.3s; }
+        .logout-btn:hover { background: white; color: #4a148c; }
+        
+        /* CONTENT AREA */
+        .content { padding: 15px; }
+        
+        /* FORMS */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 0.9em; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: white; outline: none; transition: border 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
+
+        /* BUTTONS */
+        .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
+        .btn-full { width: 100%; }
+        .btn-primary { background: #6a1b9a; color: white; }
+        .btn-primary:hover { background: #4a148c; }
+        
+        /* MESSAGES */
+        .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
+        
+        /* TABS */
+        .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; }
+        .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; }
+        .tab-content { display: none; }
+        
+        /* CARDS & GRIDS */
+        .card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
+        .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
+        
+        .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        
+        /* UTILS */
+        .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
+
+        /* MEDIA QUERIES */
+        @media (min-width: 768px) {
+            body { padding: 20px; }
+            .container { border-radius: 20px; }
+            .header { padding: 30px; }
+            .header h1 { font-size: 2em; margin-top: 0; }
+            .grid-2 { grid-template-columns: 1fr 1fr; gap: 20px; }
+            .grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Smart Attendance Tracker</h1>
+            <p>Efficient Student Attendance Management System</p>
+            <div class="role-badge" id="roleBadge">Administrator</div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+        <!-- Main App -->
+        <div class="content app-main" id="appContent" style="display: block;">
+            
+            <div class="nav-tabs" id="navTabs">
+                <button class="nav-tab active" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
+                <button class="nav-tab" id="tab-btn-students" onclick="showTab('students')">👥 Students</button>
+                <button class="nav-tab" id="tab-btn-subjects" onclick="showTab('subjects')">📚 Subjects</button>
+            </div>
+
+            <!-- Attendance Tab -->
+            <div class="tab-content" id="attendance" style="display: block;">
+                <div class="card">
+                    <h3>Mark Attendance</h3>
+                    <div class="info-box">Select class first to filter relevant subjects.</div>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Select Class</label>
+                            <select id="selectClass">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Subject</label>
+                            <select id="selectSubject">
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Period</label>
+                            <select id="selectPeriod">
+                                <option value="">Select Period</option>
+                                <option value="Daily Attendance">🏫 Daily School Attendance</option>
+                                <option value="1">1st Period</option>
+                                <option value="2">2nd Period</option>
+                                <option value="3">3rd Period</option>
+                                <option value="4">4th Period</option>
+                                <option value="5">5th Period</option>
+                                <option value="6">6th Period</option>
+                                <option value="7">7th Period</option>
+                                <option value="8">8th Period</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Tab -->
+            <div class="tab-content" id="students">
+                <div class="card">
+                    <h3>Add New Student</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Grade & Class</label>
+                            <select id="studentGrade">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Student Name</label>
+                            <input type="text" id="studentName" placeholder="Enter name">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subjects Tab -->
+            <div class="tab-content" id="subjects">
+                <div class="card">
+                    <h3>📚 Manage Subjects</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Grade / Class</label>
+                            <select id="subjectClass">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject Name</label>
+                            <input type="text" id="newSubjectName" placeholder="e.g., Mathematics, Science">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject</button>
+                </div>
+            </div>
+
+            <div class="footer-credit">
+                Developer - Kelum Koonara | Smart soft | 0714469232
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Grade 6 සිට 11 දක්වා පන්ති සහ විෂයයන් දත්ත ගබඩාව
+        const schoolData = {
+            "Grade 6": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+            "Grade 7": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+            "Grade 8": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+            "Grade 9": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+            "Grade 10": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"],
+            "Grade 11": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"]
+        };
+
+        // පිටුව ලෝඩ් වන විට සහ පන්ති වෙනස් වන විට ක්‍රියාත්මක වන ප්‍රධාන කොටස
+        window.addEventListener('DOMContentLoaded', function() {
+            loadAllClasses();
+
+            // Select Class ඩ්‍රොප්ඩවුන් එක වෙනස් වන විට (onchange) විෂයයන් ලෝඩ් වීම සක්‍රීය කිරීම
+            const selectClassEl = document.getElementById('selectClass');
+            if (selectClassEl) {
+                selectClassEl.addEventListener('change', function() {
+                    loadSubjectsForClass(this.value, 'selectSubject');
+                });
+            }
+        });
+
+        // පන්ති සියල්ල අදාළ Dropdowns වෙත එකතු කිරීම
+        function loadAllClasses() {
+            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass'];
+            const classes = Object.keys(schoolData);
+
+            classDropdownIds.forEach(id => {
+                const selectElement = document.getElementById(id);
+                if (selectElement) {
+                    selectElement.innerHTML = '<option value="">Select Class</option>';
+                    classes.forEach(className => {
+                        const option = document.createElement('option');
+                        option.value = className;
+                        option.textContent = className;
+                        selectElement.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        // තෝරන ලද පන්තියට අදාළ විෂයයන් අදාළ Dropdown එකට load කිරීමේ ශ්‍රිතය
+        function loadSubjectsForClass(className, targetDropdownId) {
+            const subjectSelect = document.getElementById(targetDropdownId);
+            if (!subjectSelect) return;
+
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+            if (className && schoolData[className]) {
+                schoolData[className].forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    subjectSelect.appendChild(option);
+                });
+            }
+        }
+
+        // නව විෂයයක් එකතු කිරීම
+        function addNewSubject() {
+            const className = document.getElementById('subjectClass').value;
+            const subjectName = document.getElementById('newSubjectName').value.trim();
+
+            if (!className) {
+                alert("කරුණාකර පන්තියක් තෝරන්න!");
+                return;
+            }
+            if (!subjectName) {
+                alert("කරුණාකර විෂය නම ඇතුළත් කරන්න!");
+                return;
+            }
+
+            if (!schoolData[className].includes(subjectName)) {
+                schoolData[className].push(subjectName);
+                alert("විෂය සාර්ථකව එකතු කරන ලදී!");
+                document.getElementById('newSubjectName').value = '';
+                
+                // Attendance ටැබ් එකේ එම පන්තියම දැනට තෝරා තිබේ නම් විෂය ලැයිස්තුව යාවත්කාලීන කිරීම
+                const currentSelectedClass = document.getElementById('selectClass').value;
+                if (currentSelectedClass === className) {
+                    loadSubjectsForClass(className, 'selectSubject');
+                }
+            } else {
+                alert("මෙම විෂය දැනටමත් මෙම පන්තියට ඇතුළත් කර ඇත.");
+            }
+        }
+
+        // ටැබ් මාරු කිරීමේ ශ්‍රිතය
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            
+            const targetTab = document.getElementById(tabId);
+            const targetBtn = document.getElementById('tab-btn-' + tabId);
+            
+            if (targetTab) targetTab.style.display = 'block';
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+    </script>
+</body>
+</html>
