@@ -103,7 +103,8 @@
                     <div class="grid-3">
                         <div class="form-group">
                             <label>Select Class</label>
-                            <select id="selectClass">
+                            <!-- පන්තිය තේරූ වහාම විෂයයන් ලෝඩ් වීමට onchange එක කෙලින්ම එකතු කර ඇත -->
+                            <select id="selectClass" onchange="filterSubjects()">
                                 <option value="">Select Class</option>
                             </select>
                         </div>
@@ -188,20 +189,12 @@
             "Grade 11": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"]
         };
 
-        // පිටුව ලෝඩ් වන විට සහ පන්ති වෙනස් වන විට ක්‍රියාත්මක වන ප්‍රධාන කොටස
-        window.addEventListener('DOMContentLoaded', function() {
+        // වෙබ් පිටුව ලෝඩ් වූ වහාම පන්ති ඩ්‍රොප්ඩවුන් පිරවීම
+        window.onload = function() {
             loadAllClasses();
+        };
 
-            // Select Class ඩ්‍රොප්ඩවුන් එක වෙනස් වන විට (onchange) විෂයයන් ලෝඩ් වීම සක්‍රීය කිරීම
-            const selectClassEl = document.getElementById('selectClass');
-            if (selectClassEl) {
-                selectClassEl.addEventListener('change', function() {
-                    loadSubjectsForClass(this.value, 'selectSubject');
-                });
-            }
-        });
-
-        // පන්ති සියල්ල අදාළ Dropdowns වෙත එකතු කිරීම
+        // සියලුම ඩ්‍රොප්ඩවුන් වෙත පන්ති ඇතුළත් කිරීම
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass'];
             const classes = Object.keys(schoolData);
@@ -220,15 +213,17 @@
             });
         }
 
-        // තෝරන ලද පන්තියට අදාළ විෂයයන් අදාළ Dropdown එකට load කිරීමේ ශ්‍රිතය
-        function loadSubjectsForClass(className, targetDropdownId) {
-            const subjectSelect = document.getElementById(targetDropdownId);
+        // පන්තියක් තේරූ විට අදාළ විෂයයන් ලෝඩ් කිරීම (Filter Subjects)
+        function filterSubjects() {
+            const selectedClass = document.getElementById('selectClass').value;
+            const subjectSelect = document.getElementById('selectSubject');
+            
             if (!subjectSelect) return;
 
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-            if (className && schoolData[className]) {
-                schoolData[className].forEach(subject => {
+            if (selectedClass && schoolData[selectedClass]) {
+                schoolData[selectedClass].forEach(subject => {
                     const option = document.createElement('option');
                     option.value = subject;
                     option.textContent = subject;
@@ -259,7 +254,7 @@
                 // Attendance ටැබ් එකේ එම පන්තියම දැනට තෝරා තිබේ නම් විෂය ලැයිස්තුව යාවත්කාලීන කිරීම
                 const currentSelectedClass = document.getElementById('selectClass').value;
                 if (currentSelectedClass === className) {
-                    loadSubjectsForClass(className, 'selectSubject');
+                    filterSubjects();
                 }
             } else {
                 alert("මෙම විෂය දැනටමත් මෙම පන්තියට ඇතුළත් කර ඇත.");
