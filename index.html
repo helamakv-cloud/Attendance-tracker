@@ -125,7 +125,6 @@
                 </div>
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
-                <!-- Developer Credit -->
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
                     Developer - Kelum Konara | 0714469232
                 </div>
@@ -350,7 +349,7 @@
                 </div>
             </div>
 
-            <!-- STUDENTS TAB (Now with Buckets) -->
+            <!-- STUDENTS TAB (Now clean, just core details) -->
             <div class="tab-content" id="students">
                 <div class="card">
                     <h3>Add New Student</h3>
@@ -378,39 +377,6 @@
                             <input type="tel" id="studentPhone" placeholder="Enter phone number">
                         </div>
                     </div>
-                    
-                    <!-- BUCKET SUBJECTS -->
-                    <h4 style="color: #6a1b9a; margin: 15px 0 10px;">Select Aesthetic / Bucket Subjects</h4>
-                    <div class="grid-3">
-                        <div class="form-group">
-                            <label>Bucket I (කාණ්ඩය I)</label>
-                            <select id="studentBucket1">
-                                <option value="None">None (කැමති නැත)</option>
-                                <option value="Civics">Civics</option>
-                                <option value="Geography">Geography</option>
-                                <option value="Commerce">Commerce</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bucket II (Aesthetics)</label>
-                            <select id="studentBucket2">
-                                <option value="None">None (කැමති නැත)</option>
-                                <option value="Dancing">Dancing</option>
-                                <option value="Art">Art</option>
-                                <option value="Music">Music</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bucket III (කාණ්ඩය III)</label>
-                            <select id="studentBucket3">
-                                <option value="None">None (කැමති නැත)</option>
-                                <option value="Health & PE">Health & PE</option>
-                                <option value="Information and Communication Technology (ICT)">ICT</option>
-                                <option value="Agriculture">Agriculture</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="addNewStudent()">Add Student</button>
                 </div>
 
@@ -441,11 +407,13 @@
                 </div>
             </div>
 
-            <!-- SUBJECTS TAB (Restored without Subject ID) -->
+            <!-- SUBJECTS TAB (Now handles Bucket configurations) -->
             <div class="tab-content" id="subjects">
+                
+                <!-- Add New Subject -->
                 <div class="card">
-                    <h3>📚 Manage Subjects (Firebase Database)</h3>
-                    <div class="grid-2">
+                    <h3>📚 Manage Subjects</h3>
+                    <div class="grid-3">
                         <div class="form-group">
                             <label>Grade / Class</label>
                             <select id="subjectClass">
@@ -453,11 +421,47 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>Category (කාණ්ඩය)</label>
+                            <select id="subjectCategory">
+                                <option value="Core">Core Subject (පොදු විෂය)</option>
+                                <option value="Bucket 1">Bucket I (Civics/Geo/Com)</option>
+                                <option value="Bucket 2">Bucket II (Aesthetics/Arts)</option>
+                                <option value="Bucket 3">Bucket III (Health/ICT/Agri)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Subject Name</label>
-                            <input type="text" id="newSubjectName" placeholder="e.g., Mathematics, Science, ICT">
+                            <input type="text" id="newSubjectName" placeholder="e.g., Dancing">
                         </div>
                     </div>
                     <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject to Firebase</button>
+                </div>
+
+                <!-- NEW: Assign Students to Bucket Subjects -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3>👥 Assign Students to Bucket Subjects</h3>
+                    <div class="info-box">කාණ්ඩ විෂයයන් (Bucket Subjects) තෝරාගත් සිසුන් පමණක් මෙහිදී අදාළ විෂයයට ඇතුළත් (Assign) කරන්න.</div>
+                    
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Select Grade</label>
+                            <select id="assignSubGrade" onchange="filterAssignSubjects()">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Subject</label>
+                            <select id="assignSubName">
+                                <option value="">Select Subject</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-full" onclick="loadStudentsForAssignment()">Load Students</button>
+                    
+                    <!-- Checkbox list for assigning -->
+                    <div id="assignStudentList" style="margin-top: 15px;"></div>
+                    <button class="btn btn-success btn-full" id="saveAssignmentBtn" style="display: none; margin-top: 15px;" onclick="saveSubjectAssignment()">Save Assignment</button>
                 </div>
             </div>
 
@@ -527,6 +531,7 @@
 
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
+        let subjectCategoriesData = {};
         
         // Passwords kept in code for authentication but hidden from UI
         const rolePasswords = {
@@ -535,11 +540,11 @@
             "subject_teacher": "subject123"
         };
 
-        // Bucket subject master list for filtering logic
-        const bucketSubjectsList = [
+        // Fallback list of traditional bucket subjects for old data handling
+        const legacyBucketList = [
             "Civics", "Geography", "Commerce", 
             "Dancing", "Art", "Music", 
-            "Health & PE", "Information and Communication Technology (ICT)", "Agriculture"
+            "Health & PE", "Information and Communication Technology (ICT)", "Agriculture", "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)", "ICT"
         ];
 
         let currentUser = { name: "", role: "", teacherId: "N/A", subject: "N/A" };
@@ -757,7 +762,7 @@
                 });
                 
                 if (!found && role !== 'admin') {
-                    alert("Warning: Your profile was not found in the Teachers database.");
+                    alert("Warning: Your profile was not found in the Teachers database. Leave request auto-fill might show N/A.");
                 }
 
                 document.getElementById('leaveTeacherId').value = currentUser.teacherId;
@@ -916,7 +921,7 @@
 
         // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
-            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade', 'viewAttClass'];
+            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade', 'viewAttClass', 'assignSubGrade'];
             classDropdownIds.forEach(id => {
                 const selectElement = document.getElementById(id);
                 if (selectElement) {
@@ -943,6 +948,11 @@
         }
 
         function fetchDataFromFirebase() {
+            // Fetch subject categories simultaneously
+            database.ref('subjectCategories').on('value', (catSnap) => {
+                if(catSnap.exists()) subjectCategoriesData = catSnap.val();
+            });
+
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) schoolData = data;
@@ -954,6 +964,7 @@
                 }
                 filterSubjects();
                 filterViewSubjects();
+                filterAssignSubjects();
                 loadUniqueSubjects(); 
             });
         }
@@ -967,9 +978,7 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") {
-                        subject = "Information and Communication Technology (ICT)";
-                    }
+                    if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") subject = "Information and Communication Technology (ICT)";
                     if(subject !== "Daily School Attendance") {
                         const option = document.createElement('option');
                         option.value = subject;
@@ -986,9 +995,7 @@
 
             for (const grade in schoolData) {
                 schoolData[grade].forEach(sub => {
-                    if(sub === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || sub === "ICT") {
-                        sub = "Information and Communication Technology (ICT)";
-                    }
+                    if(sub === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || sub === "ICT") sub = "Information and Communication Technology (ICT)";
                     subjectSet.add(sub);
                 });
             }
@@ -1004,20 +1011,26 @@
             }
         }
 
-        // ADD NEW SUBJECT 
+        // --- MANAGE SUBJECTS LOGIC ---
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
-            const subjectName = document.getElementById('newSubjectName').value.trim();
+            const subjectCat = document.getElementById('subjectCategory').value;
+            const subjectNameRaw = document.getElementById('newSubjectName').value.trim();
             
             if (!className) return alert("Please select a class!");
-            if (!subjectName) return alert("Please enter the subject name!");
+            if (!subjectNameRaw) return alert("Please enter the subject name!");
 
             if (!schoolData[className]) schoolData[className] = [];
-            if (!schoolData[className].includes(subjectName)) {
-                schoolData[className].push(subjectName);
+            
+            if (!schoolData[className].includes(subjectNameRaw)) {
+                schoolData[className].push(subjectNameRaw);
+                
+                // Save to schoolData
                 database.ref('schoolData').set(schoolData, (error) => {
                     if (error) alert("Error saving data: " + error.message);
                     else { 
+                        // Save Category separately
+                        database.ref(`subjectCategories/${className}/${subjectNameRaw}`).set(subjectCat);
                         alert("Subject successfully added!"); 
                         document.getElementById('newSubjectName').value = ''; 
                     }
@@ -1025,18 +1038,94 @@
             } else alert("This subject already exists in the selected class.");
         }
 
-        // ADD NEW STUDENT - WITH STUDENT ID & BUCKET SUBJECTS
+        // Subject filter for Assignment UI
+        function filterAssignSubjects() {
+            const selectedClass = document.getElementById('assignSubGrade').value;
+            const subjectSelect = document.getElementById('assignSubName');
+            if (!subjectSelect) return;
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+            if (selectedClass && schoolData[selectedClass]) {
+                schoolData[selectedClass].forEach(subject => {
+                    if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") subject = "Information and Communication Technology (ICT)";
+                    if(subject !== "Daily School Attendance") {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectSelect.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        // Load students with checkboxes for Buckets assignment
+        function loadStudentsForAssignment() {
+            const grade = document.getElementById('assignSubGrade').value;
+            const subject = document.getElementById('assignSubName').value;
+            if(!grade || !subject) return alert("Select Grade and Subject to load students!");
+
+            const container = document.getElementById('assignStudentList');
+            container.innerHTML = '<div class="info-box">Loading students...</div>';
+
+            database.ref(`students/${grade}`).once('value', snap => {
+                if(!snap.exists()) {
+                    container.innerHTML = '<div class="info-box alert">No students found in this grade.</div>';
+                    return;
+                }
+                const allStudents = snap.val();
+
+                // Fetch current enrollments
+                database.ref(`subjectEnrollments/${grade}/${subject}`).once('value', enrollSnap => {
+                    const enrollments = enrollSnap.exists() ? enrollSnap.val() : {};
+
+                    let html = '<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 6px; background: white;">';
+                    
+                    for (let stuId in allStudents) {
+                        const isChecked = enrollments[stuId] ? "checked" : "";
+                        html += `
+                            <div style="padding: 8px; border-bottom: 1px solid #eee; display: flex; align-items: center;">
+                                <input type="checkbox" id="assign_${stuId}" value="${stuId}" ${isChecked} style="width:18px; height:18px; margin-right: 15px;">
+                                <label for="assign_${stuId}" style="cursor: pointer; margin: 0; flex-grow: 1;"><strong>${stuId}</strong> - ${allStudents[stuId].name}</label>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    container.innerHTML = html;
+                    document.getElementById('saveAssignmentBtn').style.display = 'block';
+                });
+            });
+        }
+
+        // Save Bucket Enrollments
+        function saveSubjectAssignment() {
+            const grade = document.getElementById('assignSubGrade').value;
+            const subject = document.getElementById('assignSubName').value;
+            const container = document.getElementById('assignStudentList');
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+            let enrollments = {};
+            checkboxes.forEach(chk => {
+                if (chk.checked) enrollments[chk.value] = true;
+            });
+
+            database.ref(`subjectEnrollments/${grade}/${subject}`).set(enrollments, err => {
+                if (err) alert("Error saving assignment: " + err.message);
+                else {
+                    alert(`Students successfully assigned to ${subject}!`);
+                    container.innerHTML = '';
+                    document.getElementById('saveAssignmentBtn').style.display = 'none';
+                    document.getElementById('assignSubName').value = '';
+                }
+            });
+        }
+
+        // --- STUDENTS TAB LOGIC ---
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const studentId = document.getElementById('studentIdInput').value.trim();
             const name = document.getElementById('studentName').value.trim();
             const address = document.getElementById('studentAddress').value.trim();
             const phone = document.getElementById('studentPhone').value.trim();
-            
-            // Bucket Values
-            const b1 = document.getElementById('studentBucket1').value;
-            const b2 = document.getElementById('studentBucket2').value;
-            const b3 = document.getElementById('studentBucket3').value;
 
             if (!grade || !studentId || !name) return alert("Please select a class, enter Student ID and Name!");
 
@@ -1047,10 +1136,7 @@
                     database.ref(`students/${grade}/${studentId}`).set({
                         name: name, 
                         address: address || "Not Provided", 
-                        phone: phone || "Not Provided",
-                        bucket1: b1,
-                        bucket2: b2,
-                        bucket3: b3
+                        phone: phone || "Not Provided"
                     }, (error) => {
                         if (error) alert("Error: " + error.message);
                         else {
@@ -1059,16 +1145,12 @@
                             document.getElementById('studentName').value = ''; 
                             document.getElementById('studentAddress').value = '';
                             document.getElementById('studentPhone').value = '';
-                            document.getElementById('studentBucket1').value = 'None';
-                            document.getElementById('studentBucket2').value = 'None';
-                            document.getElementById('studentBucket3').value = 'None';
                         }
                     });
                 }
             });
         }
 
-        // LOAD STUDENT LIST 
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
@@ -1096,6 +1178,7 @@
             if (confirm("Remove this student?")) database.ref(`students/${grade}/${studentId}`).remove();
         }
 
+        // --- TEACHERS LOGIC ---
         function addNewTeacher() {
             const tId = document.getElementById('teacherId').value.trim();
             const tName = document.getElementById('teacherName').value.trim();
@@ -1150,65 +1233,87 @@
             listContainer.innerHTML = '<div class="info-box">Loading students...</div>';
             saveBtn.style.display = 'none';
 
+            // Check if it's a bucket subject by fetching category (or relying on legacy list)
+            let isBucket = legacyBucketList.includes(subject);
+            if (subjectCategoriesData[grade] && subjectCategoriesData[grade][subject] && subjectCategoriesData[grade][subject] !== "Core") {
+                isBucket = true;
+            }
+
             database.ref('students/' + grade).once('value', (snapshot) => {
-                listContainer.innerHTML = ''; 
-                if (!snapshot.exists()) { listContainer.innerHTML = '<div class="info-box alert">No students found for this class. Please add students first.</div>'; return; }
+                if (!snapshot.exists()) { 
+                    listContainer.innerHTML = '<div class="info-box alert">No students found for this class. Please add students first.</div>'; 
+                    return; 
+                }
+                const allStudents = snapshot.val();
 
-                let html = `
-                    <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
-                        <h4 style="color: #4a148c; margin-bottom: 8px;">Date: ${dateStr}</h4>
-                        <div style="color: #555; font-size: 0.9em; display: flex; flex-wrap: wrap; gap: 15px;">
-                            <span><strong>Grade:</strong> <span style="color:#222;">${grade}</span></span>
-                            <span><strong>Subject:</strong> <span style="color:#222;">${subject}</span></span>
-                            <span><strong>Period:</strong> <span style="color:#222;">${period}</span></span>
-                        </div>
-                    </div>
-                `;
-                
-                let studentsDisplayed = 0;
-
-                snapshot.forEach((childSnapshot) => {
-                    const student = childSnapshot.val();
-                    const studentId = childSnapshot.key;
-                    
-                    let shouldShowStudent = false;
-
-                    // If it's a general subject or Daily Attendance, show all students
-                    if (subject === "Daily School Attendance" || !bucketSubjectsList.includes(subject)) {
-                        shouldShowStudent = true;
-                    } 
-                    // If it's a bucket subject, check if the student chose it
-                    else if (student.bucket1 === subject || student.bucket2 === subject || student.bucket3 === subject) {
-                        shouldShowStudent = true;
-                    }
-
-                    if(shouldShowStudent) {
-                        studentsDisplayed++;
-                        html += `
-                        <div class="student-row">
-                            <span><strong style="color:#6a1b9a; margin-right:10px;">${studentId}</strong> ${student.name}</span>
-                            <label style="display:flex; align-items:center; cursor:pointer;">
-                                <input type="checkbox" class="attendance-check" data-id="${studentId}" data-name="${student.name}" checked style="width:20px; height:20px; cursor:pointer;">
-                                <span style="margin-left: 10px; font-weight:600; color:#2e7d32;">Present</span>
-                            </label>
-                        </div>`;
-                    }
-                });
-
-                if(studentsDisplayed === 0) {
-                    html += `<div class="info-box alert">No students found who have selected this bucket subject.</div>`;
+                // If it is a bucket subject, fetch enrollments
+                if (isBucket && subject !== "Daily School Attendance") {
+                    database.ref(`subjectEnrollments/${grade}/${subject}`).once('value', enrollSnap => {
+                        const enrollments = enrollSnap.exists() ? enrollSnap.val() : {};
+                        renderAttendanceList(grade, subject, period, dateStr, allStudents, enrollments, true, listContainer, saveBtn);
+                    });
                 } else {
-                    saveBtn.style.display = 'block';
+                    // Core Subject or Daily Attendance
+                    renderAttendanceList(grade, subject, period, dateStr, allStudents, {}, false, listContainer, saveBtn);
+                }
+            });
+        }
+
+        function renderAttendanceList(grade, subject, period, dateStr, allStudents, enrollments, isBucket, listContainer, saveBtn) {
+            let html = `
+                <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
+                    <h4 style="color: #4a148c; margin-bottom: 8px;">Date: ${dateStr}</h4>
+                    <div style="color: #555; font-size: 0.9em; display: flex; flex-wrap: wrap; gap: 15px;">
+                        <span><strong>Grade:</strong> <span style="color:#222;">${grade}</span></span>
+                        <span><strong>Subject:</strong> <span style="color:#222;">${subject}</span></span>
+                        <span><strong>Period:</strong> <span style="color:#222;">${period}</span></span>
+                    </div>
+                </div>
+            `;
+            
+            let studentsDisplayed = 0;
+
+            for (let studentId in allStudents) {
+                const student = allStudents[studentId];
+                
+                let shouldShowStudent = false;
+
+                if (!isBucket) {
+                    shouldShowStudent = true; // Show all for core
+                } else if (enrollments[studentId]) {
+                    shouldShowStudent = true; // Show only enrolled for buckets
                 }
 
-                listContainer.innerHTML = html;
+                if(shouldShowStudent) {
+                    studentsDisplayed++;
+                    html += `
+                    <div class="student-row">
+                        <span><strong style="color:#6a1b9a; margin-right:10px;">${studentId}</strong> ${student.name}</span>
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" class="attendance-check" data-id="${studentId}" data-name="${student.name}" checked style="width:20px; height:20px; cursor:pointer;">
+                            <span style="margin-left: 10px; font-weight:600; color:#2e7d32;">Present</span>
+                        </label>
+                    </div>`;
+                }
+            }
 
-                document.querySelectorAll('.attendance-check').forEach(chk => {
-                    chk.addEventListener('change', function() {
-                        const labelSpan = this.nextElementSibling;
-                        if(this.checked) { labelSpan.textContent = 'Present'; labelSpan.style.color = '#2e7d32'; } 
-                        else { labelSpan.textContent = 'Absent'; labelSpan.style.color = '#c62828'; }
-                    });
+            if(studentsDisplayed === 0) {
+                if (isBucket) {
+                    html += `<div class="info-box alert">No students have been assigned to this subject yet. Please assign students in the "Subjects" tab.</div>`;
+                } else {
+                    html += `<div class="info-box alert">No students found.</div>`;
+                }
+            } else {
+                saveBtn.style.display = 'block';
+            }
+
+            listContainer.innerHTML = html;
+
+            document.querySelectorAll('.attendance-check').forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const labelSpan = this.nextElementSibling;
+                    if(this.checked) { labelSpan.textContent = 'Present'; labelSpan.style.color = '#2e7d32'; } 
+                    else { labelSpan.textContent = 'Absent'; labelSpan.style.color = '#c62828'; }
                 });
             });
         }
