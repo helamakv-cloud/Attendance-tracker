@@ -43,11 +43,17 @@
         .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
 
         /* BUTTONS */
-        .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
         .btn-full { width: 100%; }
         .btn-primary { background: #6a1b9a; color: white; }
         .btn-primary:hover { background: #4a148c; }
         
+        .btn-edit { background: #ff9800; color: white; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
+        .btn-edit:hover { background: #f57c00; }
+        
+        .btn-delete { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-delete:hover { background: #d32f2f; }
+
         /* MESSAGES */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
         
@@ -106,8 +112,8 @@
             <!-- Attendance Tab -->
             <div class="tab-content" id="attendance" style="display: block;">
                 <div class="card">
-                    <h3>Mark Attendance</h3>
-                    <div class="info-box">Select Class, Subject, and Period to load students.</div>
+                    <h3>Mark Attendance & Student Management</h3>
+                    <div class="info-box">Select Class, Subject, and Period to load students, mark attendance, or manage student details.</div>
                     <div class="grid-3">
                         <div class="form-group">
                             <label>Select Class</label>
@@ -145,7 +151,7 @@
 
                 <!-- Students Attendance List Container -->
                 <div class="card" id="attendanceListCard" style="display: none;">
-                    <h3>Student List for Attendance</h3>
+                    <h3>Student List & Actions</h3>
                     <div class="table-responsive">
                         <table class="att-table">
                             <thead>
@@ -153,6 +159,7 @@
                                     <th>Admission No</th>
                                     <th>Student Name</th>
                                     <th>Attendance Status</th>
+                                    <th>Actions (Edit / Delete)</th>
                                 </tr>
                             </thead>
                             <tbody id="attendanceTableBody">
@@ -224,6 +231,8 @@
         </div>
     </div>
 
+    <!-- Edit Student Modal Form / Prompt Logic handled via JS -->
+
     <script>
         // FIREBASE CONFIGURATION
         const firebaseConfig = {
@@ -280,6 +289,11 @@
 
             database.ref('students').on('value', (snapshot) => {
                 studentsData = snapshot.val() || {};
+                // If attendance list is currently open, refresh it dynamically
+                const attendanceCard = document.getElementById('attendanceListCard');
+                if (attendanceCard && attendanceCard.style.display === 'block') {
+                    loadStudentsForAttendance();
+                }
             });
         }
 
@@ -321,18 +335,25 @@
             const classStudents = studentsData[className] ? Object.entries(studentsData[className]) : [];
 
             if (classStudents.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">No students found in this class. Please add students from the "Students" tab.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">No students found in this class. Please add students from the "Students" tab.</td></tr>';
             } else {
                 classStudents.forEach(([admissionNo, student]) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td><strong>${admissionNo}</strong></td>
-                        <td>${student.name}</td>
+                        <td>
+                            ${student.name}<br>
+                            <small style="color: #666;">Phone: ${student.phone || 'N/A'} | Addr: ${student.address || 'N/A'}</small>
+                        </td>
                         <td>
                             <div class="status-radios">
                                 <label><input type="radio" name="att_${admissionNo}" value="Present" checked> Present</label>
                                 <label><input type="radio" name="att_${admissionNo}" value="Absent"> Absent</label>
                             </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-edit" onclick="editStudent('${className}', '${admissionNo}')">Edit</button>
+                            <button class="btn btn-delete" onclick="deleteStudent('${className}', '${admissionNo}')">Delete</button>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -429,6 +450,45 @@
                     });
                 }
             });
+        }
+
+        // Edit Student Function
+        function editStudent(className, admissionNo) {
+            const student = studentsData[className][admissionNo];
+            
+            const newName = prompt("Edit Student Name:", student.name || "");
+            if (newName === null) return; // Cancelled
+
+            const newPhone = prompt("Edit Guardian's Phone Number:", student.phone || "");
+            if (newPhone === null) return;
+
+            const newAddress = prompt("Edit Student Address:", student.address || "");
+            if (newAddress === null) return;
+
+            database.ref(`students/${className}/${admissionNo}`).update({
+                name: newName.trim(),
+                phone: newPhone.trim(),
+                address: newAddress.trim()
+            }, (error) => {
+                if (error) {
+                    alert("Error updating student: " + error.message);
+                } else {
+                    alert("Student details updated successfully!");
+                }
+            });
+        }
+
+        // Delete Student Function
+        function deleteStudent(className, admissionNo) {
+            if (confirm(`Are you sure you want to delete student with Admission No: ${admissionNo}?`)) {
+                database.ref(`students/${className}/${admissionNo}`).remove((error) => {
+                    if (error) {
+                        alert("Error deleting student: " + error.message);
+                    } else {
+                        alert("Student deleted successfully from database!");
+                    }
+                });
+            }
         }
 
         function addNewSubject() {
