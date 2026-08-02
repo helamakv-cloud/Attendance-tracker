@@ -138,7 +138,7 @@
                 <button class="nav-tab active" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
                 <button class="nav-tab" id="tab-btn-students" onclick="showTab('students')">👥 Students</button>
                 <button class="nav-tab" id="tab-btn-subjects" onclick="showTab('subjects')">📚 Subjects</button>
-                <!-- NEW: Teachers Tab Button -->
+                <!-- Teachers Tab Button -->
                 <button class="nav-tab" id="tab-btn-teachers" onclick="showTab('teachers')">👨‍🏫 Teachers</button>
             </div>
 
@@ -262,7 +262,7 @@
                 </div>
             </div>
 
-            <!-- NEW: Teachers Tab -->
+            <!-- Teachers Tab -->
             <div class="tab-content" id="teachers">
                 <div class="card">
                     <h3>Add New Teacher</h3>
@@ -275,9 +275,13 @@
                             <label>Teacher Name</label>
                             <input type="text" id="teacherName" placeholder="e.g. John Doe">
                         </div>
+                        <!-- UPDATED: Teaching Subject as a Dropdown -->
                         <div class="form-group">
-                            <label>Subject Taught</label>
-                            <input type="text" id="teacherSubject" placeholder="e.g. Science">
+                            <label>Teaching Subject</label>
+                            <select id="teacherSubject">
+                                <option value="">Select Subject</option>
+                                <!-- Populated dynamically based on available subjects -->
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Class Teacher Of (Optional)</label>
@@ -476,6 +480,7 @@
                     database.ref('schoolData').set(schoolData);
                 }
                 filterSubjects();
+                loadUniqueSubjects(); // Load unique subjects into Teacher Tab Dropdown
             });
         }
 
@@ -493,6 +498,26 @@
                     option.value = subject;
                     option.textContent = subject;
                     subjectSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Collect all unique subjects and populate the Teacher "Teaching Subject" dropdown
+        function loadUniqueSubjects() {
+            const subjectSet = new Set();
+            for (const grade in schoolData) {
+                schoolData[grade].forEach(sub => subjectSet.add(sub));
+            }
+            
+            const teacherSubjectSelect = document.getElementById('teacherSubject');
+            if (teacherSubjectSelect) {
+                teacherSubjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                // Sort subjects alphabetically and create options
+                Array.from(subjectSet).sort().forEach(subject => {
+                    const option = document.createElement('option');
+                    option.value = subject;
+                    option.textContent = subject;
+                    teacherSubjectSelect.appendChild(option);
                 });
             }
         }
@@ -551,17 +576,17 @@
         function addNewTeacher() {
             const tId = document.getElementById('teacherId').value.trim();
             const tName = document.getElementById('teacherName').value.trim();
-            const tSubject = document.getElementById('teacherSubject').value.trim();
+            const tSubject = document.getElementById('teacherSubject').value;
             const tClass = document.getElementById('teacherClass').value;
 
-            if (!tId || !tName) {
-                return alert("Please enter Teacher ID and Name!");
+            if (!tId || !tName || !tSubject) {
+                return alert("Please enter Teacher ID, Name, and Teaching Subject!");
             }
 
             database.ref('teachers').push({
                 teacherId: tId,
                 name: tName,
-                subject: tSubject || "N/A",
+                subject: tSubject,
                 classTeacherOf: tClass
             }, (error) => {
                 if (error) {
