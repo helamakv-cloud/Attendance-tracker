@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -57,6 +57,7 @@
         
         /* MESSAGES & LISTS */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
+        .info-box.alert { background: #ffebee; color: #c62828; border-left-color: #c62828; }
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
         /* TABS */
@@ -69,7 +70,7 @@
         .card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
         .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
         
-        .grid-2, .grid-3, .grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         
         /* UTILS */
         .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
@@ -98,24 +99,36 @@
         <!-- LOGIN SCREEN -->
         <div class="login-wrapper" id="loginScreen">
             <div class="login-card">
-                <h2>පද්ධතියට ඇතුල් වන්න</h2>
+                <h2>System Login</h2>
                 
-                <div class="form-group">
-                    <label>ඔබගේ නම (Your Name)</label>
-                    <input type="text" id="loginUserName" placeholder="උදා: කැලුම් කුමාර">
+                <div class="info-box" style="text-align: left; font-size: 0.85em;">
+                    <strong>Default Passwords:</strong><br>
+                    Admin: <code>admin123</code><br>
+                    Class Teacher: <code>class123</code><br>
+                    Subject Teacher: <code>subject123</code>
                 </div>
 
                 <div class="form-group">
-                    <label>ඔබගේ තනතුර (Select Role)</label>
+                    <label>Your Name</label>
+                    <input type="text" id="loginUserName" placeholder="e.g. John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Role</label>
                     <select id="loginRoleSelect">
-                        <option value="">තනතුර තෝරන්න...</option>
-                        <option value="admin">👨‍💻 Admin (ප්‍රධාන පරිපාලක)</option>
-                        <option value="class_teacher">👨‍🏫 Class Teacher (පන්ති භාර ගුරු)</option>
-                        <option value="subject_teacher">📝 Subject Teacher (විෂයභාර ගුරු)</option>
+                        <option value="">Select Role...</option>
+                        <option value="admin">👨‍💻 Admin</option>
+                        <option value="class_teacher">👨‍🏫 Class Teacher</option>
+                        <option value="subject_teacher">📝 Subject Teacher</option>
                     </select>
                 </div>
 
-                <button class="btn btn-primary btn-full" onclick="login()">ඇතුල් වන්න (Login)</button>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password">
+                </div>
+
+                <button class="btn btn-primary btn-full" onclick="login()">Login</button>
             </div>
         </div>
 
@@ -135,7 +148,7 @@
                     <div class="info-box">Select date and class first to load specific subjects from Firebase.</div>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>දිනය (Date)</label>
+                            <label>Date</label>
                             <input type="date" id="attendanceDate">
                         </div>
                         <div class="form-group">
@@ -166,10 +179,10 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-full" onclick="loadStudentsForAttendance()">සිසුන් පෙන්වන්න (Load Students)</button>
+                    <button class="btn btn-primary btn-full" onclick="loadStudentsForAttendance()">Load Students</button>
                     
                     <div id="attendanceList" style="margin-top: 15px;"></div>
-                    <button class="btn btn-success btn-full" id="saveAttendanceBtn" style="display: none; margin-top: 15px;" onclick="saveAttendance()">පැමිණීම සුරකින්න (Save Attendance)</button>
+                    <button class="btn btn-success btn-full" id="saveAttendanceBtn" style="display: none; margin-top: 15px;" onclick="saveAttendance()">Save Attendance</button>
                 </div>
             </div>
 
@@ -186,28 +199,28 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Student Name (සිසුවාගේ නම)</label>
+                            <label>Student Name</label>
                             <input type="text" id="studentName" placeholder="Enter name">
                         </div>
                         <div class="form-group">
-                            <label>Address (ලිපිනය)</label>
+                            <label>Address</label>
                             <input type="text" id="studentAddress" placeholder="Enter address">
                         </div>
                         <div class="form-group">
-                            <label>Guardian Phone (භාරකරුගේ දුරකථන අංකය)</label>
+                            <label>Guardian Phone</label>
                             <input type="tel" id="studentPhone" placeholder="Enter phone number">
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-full" onclick="addNewStudent()">සිසුවා ඇතුළත් කරන්න (Add Student)</button>
+                    <button class="btn btn-primary btn-full" onclick="addNewStudent()">Add Student</button>
                 </div>
 
                 <!-- Student List & Actions Card -->
                 <div class="card" style="margin-top: 20px;">
                     <h3>📋 Student List & Actions</h3>
-                    <div class="info-box">මෙහි සිසුන්ගේ ලිපින හෝ දුරකථන අංක පෙන්වන්නේ නැත. Grade සහ නම පමණක් පෙන්වයි.</div>
+                    <div class="info-box">Addresses and phone numbers are hidden for privacy. Only Grade and Name are shown.</div>
                     
                     <div class="form-group">
-                        <label>පන්තිය තෝරන්න (Select Grade to View)</label>
+                        <label>Select Grade to View</label>
                         <select id="viewStudentGrade" onchange="loadStudentList()">
                             <option value="">Select Class</option>
                         </select>
@@ -223,7 +236,7 @@
                                 </tr>
                             </thead>
                             <tbody id="studentListTableBody">
-                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">කරුණාකර පන්තියක් තෝරන්න</td></tr>
+                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -243,7 +256,7 @@
                         </div>
                         <div class="form-group">
                             <label>Subject Name</label>
-                            <input type="text" id="newSubjectName" placeholder="e.g., ගණිතය, විද්‍යාව, ICT">
+                            <input type="text" id="newSubjectName" placeholder="e.g., Mathematics, Science, ICT">
                         </div>
                     </div>
                     <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject to Firebase</button>
@@ -266,17 +279,24 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // මුල් පන්ති ලැයිස්තුව (6 සිට 11 දක්වා)
+        // Default Classes (Grade 6 to 11)
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         
+        // --- ROLE PASSWORDS (Hardcoded for demo) ---
+        const rolePasswords = {
+            "admin": "admin123",
+            "class_teacher": "class123",
+            "subject_teacher": "subject123"
+        };
+
         // Current User State
         let currentUser = {
             name: "",
             role: ""
         };
 
-        // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම සහ දිනය සැකසීම
+        // On Page Load
         window.onload = function() {
             loadAllClasses();
             fetchDataFromFirebase();
@@ -293,9 +313,16 @@
         function login() {
             const name = document.getElementById('loginUserName').value.trim();
             const role = document.getElementById('loginRoleSelect').value;
+            const password = document.getElementById('loginPassword').value;
 
-            if (!name) return alert("කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!");
-            if (!role) return alert("කරුණාකර ඔබගේ තනතුර තෝරන්න!");
+            if (!name) return alert("Please enter your name!");
+            if (!role) return alert("Please select a role!");
+            if (!password) return alert("Please enter the password!");
+
+            // Validate Password
+            if (password !== rolePasswords[role]) {
+                return alert("Incorrect Password! Please try again.");
+            }
 
             // Save user info
             currentUser.name = name;
@@ -319,7 +346,7 @@
         }
 
         function logout() {
-            if(confirm("ඔබට පද්ධතියෙන් ඉවත් වීමට අවශ්‍යද? (Are you sure you want to logout?)")) {
+            if(confirm("Are you sure you want to logout?")) {
                 location.reload(); // Reloads the page to reset state
             }
         }
@@ -348,7 +375,7 @@
 
         // --- END LOGIN LOGIC ---
 
-        // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම
+        // Populate Class Dropdowns
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
             classDropdownIds.forEach(id => {
@@ -365,27 +392,23 @@
             });
         }
 
-        // Firebase එකෙන් දත්ත ලබා ගැනීම (Realtime Sync)
+        // Fetch Data from Firebase (Realtime Sync)
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     schoolData = data;
                 } else {
+                    // English Default Subjects
                     const juniorSubjects = [
-                        "ගණිතය (Mathematics)", "විද්‍යාව (Science)", "ඉතිහාසය (History)", 
-                        "ඉංග්‍රීසි (English)", "සිංහල (Sinhala)", "බුද්ධ ධර්මය (Buddhism)", 
-                        "පුරවැසි අධ්‍යාපනය (Civics)", "භූගෝල විද්‍යාව (Geography)", 
-                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", "ප්‍රායෝගික කලා (Practical Arts)"
+                        "Mathematics", "Science", "History", "English", "Sinhala Language", 
+                        "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"
                     ];
 
                     const seniorSubjects = [
-                        "ගණිතය (Mathematics)", "විද්‍යාව (Science)", "ඉතිහාසය (History)", 
-                        "ඉංග්‍රීසි (English)", "සිංහල (Sinhala)", "බුද්ධ ධර්මය (Buddhism)", 
-                        "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)", "වාණිජ්‍යය හා ගිණුම්කරණය (Commerce)", 
-                        "පුරවැසි අධ්‍යාපනය (Civics)", "භූගෝල විද්‍යාව (Geography)", 
-                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", "චිත්‍ර කලාව (Art)",
-                        "නැටුම් (Dancing)", "සංගීතය (Music)"
+                        "Mathematics", "Science", "History", "English", "Sinhala Language", 
+                        "Buddhism", "ICT", "Commerce", "Civics", "Geography", 
+                        "Health & PE", "Art", "Dancing", "Music"
                     ];
 
                     schoolData = {
@@ -398,7 +421,7 @@
             });
         }
 
-        // පන්තියක් තේරූ විට අදාළ ශ්‍රේණියට අදාළ විෂයයන් පමණක් ලෝඩ් කිරීම
+        // Filter Subjects based on Selected Class
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
@@ -417,13 +440,13 @@
             }
         }
 
-        // නව විෂයයක් Firebase වෙත එකතු කිරීම (Admin Only)
+        // Add New Subject to Firebase (Admin Only)
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
 
-            if (!className) return alert("කරුණාකර පන්තියක් තෝරන්න!");
-            if (!subjectName) return alert("කරුණාකර විෂය නම ඇතුළත් කරන්න!");
+            if (!className) return alert("Please select a class!");
+            if (!subjectName) return alert("Please enter the subject name!");
 
             if (!schoolData[className]) schoolData[className] = [];
 
@@ -431,18 +454,18 @@
                 schoolData[className].push(subjectName);
                 database.ref('schoolData').set(schoolData, (error) => {
                     if (error) {
-                        alert("දත්ත සුරැකීමේ දෝෂයක් ඇතිවිය: " + error.message);
+                        alert("Error saving data: " + error.message);
                     } else {
-                        alert("විෂය සාර්ථකව Firebase වෙත එකතු කරන ලදී!");
+                        alert("Subject successfully added to Firebase!");
                         document.getElementById('newSubjectName').value = '';
                     }
                 });
             } else {
-                alert("මෙම විෂය දැනටමත් මෙම පන්තියට ඇතුළත් කර ඇත.");
+                alert("This subject already exists in the selected class.");
             }
         }
 
-        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම (Admin/Class Teacher)
+        // Add New Student to Firebase (Admin/Class Teacher)
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const name = document.getElementById('studentName').value.trim();
@@ -450,18 +473,18 @@
             const phone = document.getElementById('studentPhone').value.trim();
 
             if (!grade || !name) {
-                return alert("කරුණාකර පන්තිය සහ සිසුවාගේ නම ඇතුළත් කරන්න!");
+                return alert("Please select a class and enter the student's name!");
             }
 
             database.ref('students/' + grade).push({
                 name: name,
-                address: address || "සපයා නැත",
-                phone: phone || "සපයා නැත"
+                address: address || "Not Provided",
+                phone: phone || "Not Provided"
             }, (error) => {
                 if (error) {
-                    alert("දෝෂයක්: " + error.message);
+                    alert("Error: " + error.message);
                 } else {
-                    alert("සිසුවා සාර්ථකව ඇතුළත් කරන ලදී!");
+                    alert("Student successfully added!");
                     document.getElementById('studentName').value = ''; 
                     document.getElementById('studentAddress').value = '';
                     document.getElementById('studentPhone').value = '';
@@ -473,7 +496,7 @@
             });
         }
 
-        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම
+        // Load Student List for Marking Attendance
         function loadStudentsForAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
@@ -481,7 +504,7 @@
             const period = document.getElementById('selectPeriod').value;
 
             if (!dateStr || !grade || !subject || !period) {
-                return alert("කරුණාකර දිනය, පන්තිය, විෂය සහ කාලපරිච්ඡේදය තෝරන්න!");
+                return alert("Please select Date, Class, Subject, and Period!");
             }
 
             const listContainer = document.getElementById('attendanceList');
@@ -493,11 +516,11 @@
                 listContainer.innerHTML = ''; 
                 
                 if (!snapshot.exists()) {
-                    listContainer.innerHTML = '<div class="info-box">මෙම පන්තිය සඳහා සිසුන් නොමැත. කරුණාකර පළමුව සිසුන් ඇතුළත් කරන්න.</div>';
+                    listContainer.innerHTML = '<div class="info-box alert">No students found for this class. Please add students first.</div>';
                     return;
                 }
 
-                let html = `<h4 style="color: #6a1b9a; margin-bottom: 10px;">දිනය (Date): ${dateStr}</h4>`;
+                let html = `<h4 style="color: #6a1b9a; margin-bottom: 10px;">Date: ${dateStr}</h4>`;
                 
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
@@ -531,14 +554,14 @@
             });
         }
 
-        // පැමිණීම Firebase වෙත සුරැකීම
+        // Save Attendance to Firebase
         function saveAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
             const subject = document.getElementById('selectSubject').value;
             const period = document.getElementById('selectPeriod').value;
             
-            if(!dateStr) return alert("දිනයක් තෝරා නොමැත!");
+            if(!dateStr) return alert("No date selected!");
 
             const checkboxes = document.querySelectorAll('.attendance-check');
             let attendanceData = {};
@@ -555,9 +578,9 @@
 
             database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).set(attendanceData, (error) => {
                 if(error) {
-                    alert("සුරැකීමේ දෝෂයක්: " + error.message);
+                    alert("Error saving attendance: " + error.message);
                 } else {
-                    alert("පැමිණීම සාර්ථකව සටහන් කරන ලදී!");
+                    alert("Attendance successfully saved!");
                     document.getElementById('attendanceList').innerHTML = '';
                     document.getElementById('saveAttendanceBtn').style.display = 'none';
                     document.getElementById('selectSubject').value = '';
@@ -566,13 +589,13 @@
             });
         }
 
-        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම
+        // Load Student List in Students Tab
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
 
             if (!grade) {
-                tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">කරුණාකර පන්තියක් තෝරන්න</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>';
                 return;
             }
 
@@ -582,7 +605,7 @@
                 tbody.innerHTML = '';
                 
                 if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #c62828;">සිසුන් නොමැත (No students found)</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #c62828;">No students found</td></tr>';
                     return;
                 }
 
@@ -602,7 +625,7 @@
                         </td>
                         <td style="padding: 12px; text-align: right;">
                             <button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.3s;">
-                                ඉවත් කරන්න
+                                Remove
                             </button>
                         </td>
                     `;
@@ -611,20 +634,20 @@
             });
         }
 
-        // සිසුවෙකු ඉවත් කිරීම
+        // Remove Student from Firebase
         function removeStudent(grade, studentId) {
-            if (confirm("මෙම සිසුවා ලැයිස්තුවෙන් ඉවත් කිරීමට අවශ්‍ය බව ඔබට විශ්වාසද?")) {
+            if (confirm("Are you sure you want to remove this student from the list?")) {
                 database.ref(`students/${grade}/${studentId}`).remove()
                     .then(() => {
-                        // Realtime update handles UI change
+                        // Realtime update handles UI change automatically
                     })
                     .catch((error) => {
-                        alert("ඉවත් කිරීමේ දෝෂයක්: " + error.message);
+                        alert("Error removing student: " + error.message);
                     });
             }
         }
 
-        // ටැබ් මාරු කිරීමේ ශ්‍රිතය
+        // Tab Switching Logic
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
