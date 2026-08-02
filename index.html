@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker</title>
+    <title>Smart Attendance Tracker - Firebase Edition</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -91,7 +91,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Realtime Database</p>
+            <p>Connected with Firebase Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -234,13 +234,14 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
                             <thead>
                                 <tr style="background: #e3f2fd; border-bottom: 2px solid #1976d2;">
+                                    <th style="padding: 12px; color: #0d47a1;">Student ID</th>
                                     <th style="padding: 12px; color: #0d47a1;">Student Name</th>
                                     <th style="padding: 12px; text-align: center; color: #0d47a1;">Status</th>
                                     <th style="padding: 12px; text-align: right; color: #0d47a1;">Marked By</th>
                                 </tr>
                             </thead>
                             <tbody id="viewAttendanceBody">
-                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select options and click Load</td></tr>
+                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Please select options and click Load</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -352,6 +353,11 @@
                                 <option value="">Select Class</option>
                             </select>
                         </div>
+                        <!-- NEW: Student ID Input -->
+                        <div class="form-group">
+                            <label>Student ID (ශිෂ්‍ය අංකය)</label>
+                            <input type="text" id="studentIdInput" placeholder="e.g. S001">
+                        </div>
                         <div class="form-group">
                             <label>Student Name</label>
                             <input type="text" id="studentName" placeholder="Enter name">
@@ -381,13 +387,14 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
                             <thead>
                                 <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">Student ID</th>
                                     <th style="padding: 12px; color: #4a148c;">Student Name</th>
                                     <th style="padding: 12px; color: #4a148c;">Grade</th>
                                     <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentListTableBody">
-                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>
+                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -556,7 +563,6 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    // Update old Sinhala ICT entries to English on the fly
                     if(subject === "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)" || subject === "ICT") {
                         subject = "Information and Communication Technology (ICT)";
                     }
@@ -581,23 +587,25 @@
             }
 
             const tbody = document.getElementById('viewAttendanceBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Loading real-time data...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">Loading real-time data...</td></tr>';
 
             // Real-time listener for the selected path
             database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).on('value', snap => {
                 tbody.innerHTML = '';
                 if (!snap.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color: #c62828;">No attendance record found for this selection.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color: #c62828;">No attendance record found for this selection.</td></tr>';
                     return;
                 }
 
                 snap.forEach(child => {
+                    const studentId = child.key;
                     const student = child.val();
                     const statusColor = student.status === 'Present' ? '#2e7d32' : '#c62828';
                     const statusBg = student.status === 'Present' ? '#e8f5e9' : '#ffebee';
                     
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 500;">${studentId}</td>
                             <td style="padding: 12px; font-weight: 500;">${student.name}</td>
                             <td style="padding: 12px; text-align: center;">
                                 <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${student.status}</span>
@@ -825,11 +833,11 @@
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
-                    schoolData = data;
-                } else {
-                    const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
-                    const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Information and Communication Technology (ICT)", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
+                if (data) schoolData = data;
+                else {
+                    // Added Daily School Attendance to default subjects
+                    const juniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
+                    const seniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
                     schoolData = { "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects] };
                     database.ref('schoolData').set(schoolData);
                 }
@@ -902,40 +910,55 @@
             } else alert("This subject already exists in the selected class.");
         }
 
+        // ADD NEW STUDENT - UPDATED TO USE CUSTOM STUDENT ID AS KEY
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
+            const studentId = document.getElementById('studentIdInput').value.trim();
             const name = document.getElementById('studentName').value.trim();
             const address = document.getElementById('studentAddress').value.trim();
             const phone = document.getElementById('studentPhone').value.trim();
-            if (!grade || !name) return alert("Please select a class and enter the student's name!");
+            
+            if (!grade || !studentId || !name) return alert("Please select a class, enter Student ID and Name!");
 
-            database.ref('students/' + grade).push({
-                name: name, address: address || "Not Provided", phone: phone || "Not Provided"
-            }, (error) => {
-                if (error) alert("Error: " + error.message);
-                else {
-                    alert("Student successfully added!");
-                    document.getElementById('studentName').value = ''; 
-                    document.getElementById('studentAddress').value = '';
-                    document.getElementById('studentPhone').value = '';
+            // Check if student ID already exists in that grade
+            database.ref(`students/${grade}/${studentId}`).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert("A student with this ID already exists in this class!");
+                } else {
+                    database.ref(`students/${grade}/${studentId}`).set({
+                        name: name, 
+                        address: address || "Not Provided", 
+                        phone: phone || "Not Provided"
+                    }, (error) => {
+                        if (error) alert("Error: " + error.message);
+                        else {
+                            alert("Student successfully added!");
+                            document.getElementById('studentIdInput').value = '';
+                            document.getElementById('studentName').value = ''; 
+                            document.getElementById('studentAddress').value = '';
+                            document.getElementById('studentPhone').value = '';
+                        }
+                    });
                 }
             });
         }
 
+        // LOAD STUDENT LIST - UPDATED TO SHOW CUSTOM STUDENT ID
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
-            if (!grade) { tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Please select a class</td></tr>'; return; }
-            tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
+            if (!grade) { tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">Please select a class</td></tr>'; return; }
+            tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
             
             database.ref('students/' + grade).on('value', (snapshot) => {
                 tbody.innerHTML = '';
-                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
+                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
-                    const studentId = childSnapshot.key;
+                    const studentId = childSnapshot.key; // This is now the custom Student ID
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #4a148c;">${studentId}</td>
                             <td style="padding: 12px; font-weight: 500;">${student.name}</td>
                             <td style="padding: 12px;"><span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${grade}</span></td>
                             <td style="padding: 12px; text-align: right;"><button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
@@ -1022,7 +1045,7 @@
                     const studentId = childSnapshot.key;
                     html += `
                     <div class="student-row">
-                        <span>${student.name}</span>
+                        <span><strong style="color:#6a1b9a; margin-right:10px;">${studentId}</strong> ${student.name}</span>
                         <label style="display:flex; align-items:center; cursor:pointer;">
                             <input type="checkbox" class="attendance-check" data-id="${studentId}" data-name="${student.name}" checked style="width:20px; height:20px; cursor:pointer;">
                             <span style="margin-left: 10px; font-weight:600; color:#2e7d32;">Present</span>
