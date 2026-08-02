@@ -520,7 +520,17 @@
                     return;
                 }
 
-                let html = `<h4 style="color: #6a1b9a; margin-bottom: 10px;">Date: ${dateStr}</h4>`;
+                // Enhanced Header showing Date, Grade, Subject, and Period
+                let html = `
+                    <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
+                        <h4 style="color: #4a148c; margin-bottom: 8px;">Date: ${dateStr}</h4>
+                        <div style="color: #555; font-size: 0.9em; display: flex; flex-wrap: wrap; gap: 15px;">
+                            <span><strong>Grade:</strong> <span style="color:#222;">${grade}</span></span>
+                            <span><strong>Subject:</strong> <span style="color:#222;">${subject}</span></span>
+                            <span><strong>Period:</strong> <span style="color:#222;">${period}</span></span>
+                        </div>
+                    </div>
+                `;
                 
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
