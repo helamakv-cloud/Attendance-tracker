@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker - Firebase Edition</title>
+    <title>Smart Attendance Tracker</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -92,7 +92,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Firebase Realtime Database</p>
+            <p>Connected with Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -103,7 +103,7 @@
                 <h2>System Login</h2>
                 
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
-                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests.
+                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests and filter your subjects.
                 </div>
 
                 <div class="form-group">
@@ -125,7 +125,6 @@
                 </div>
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
-                <!-- Developer Credit -->
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
                     Developer - Kelum Konara | 0714469232
                 </div>
@@ -309,7 +308,7 @@
             <div class="tab-content" id="attendance">
                 <div class="card">
                     <h3>Mark Attendance</h3>
-                    <div class="info-box">Select date and class first to load specific subjects from Firebase.</div>
+                    <div class="info-box">Subject Teachers will only see their assigned subjects in the list.</div>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Date</label>
@@ -350,7 +349,7 @@
                 </div>
             </div>
 
-            <!-- STUDENTS TAB (Clean Student Entry) -->
+            <!-- STUDENTS TAB -->
             <div class="tab-content" id="students">
                 <div class="card">
                     <h3>Add New Student</h3>
@@ -411,7 +410,32 @@
             <!-- SUBJECTS TAB (Handles Buckets & Assignments) -->
             <div class="tab-content" id="subjects">
                 
-                <!-- NEW: Assign Students to Bucket Subjects -->
+                <div class="card">
+                    <h3>📚 Manage Subjects</h3>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Grade / Class</label>
+                            <select id="subjectClass">
+                                <option value="">Select Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category (කාණ්ඩය)</label>
+                            <select id="subjectCategory">
+                                <option value="Core">Core Subject (පොදු විෂය)</option>
+                                <option value="Bucket 1">Bucket I (Civics/Geo/Com)</option>
+                                <option value="Bucket 2">Bucket II (Aesthetics/Arts)</option>
+                                <option value="Bucket 3">Bucket III (Health/ICT/Agri)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject Name</label>
+                            <input type="text" id="newSubjectName" placeholder="e.g., Dancing">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject to Firebase</button>
+                </div>
+
                 <div class="card" style="margin-top: 20px; border-top: 4px solid #6a1b9a;">
                     <h3>👥 Assign Students to Bucket Subjects</h3>
                     <div class="info-box">කාණ්ඩ විෂයයන් (Aesthetics & Bucket Subjects) තෝරාගත් සිසුන් පමණක් මෙහිදී අදාළ විෂයයට ඇතුළත් (Assign) කරන්න.</div>
@@ -506,14 +530,12 @@
         let schoolData = {};
         let subjectCategoriesData = {};
         
-        // Passwords kept in code for authentication but hidden from UI
         const rolePasswords = {
             "admin": "admin123",
             "class_teacher": "class123",
             "subject_teacher": "subject123"
         };
 
-        // Strict Official Syllabus Definitions (No other subjects)
         const juniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
             "Science", "English", "History", "Geography", "Civics", 
@@ -928,7 +950,7 @@
             // Force save clean data to Firebase to overwrite any old testing data
             database.ref('schoolData').set(schoolData);
 
-            // Also force set Subject Categories into Firebase
+            // Force set Subject Categories into Firebase
             const categories = { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
             defaultClasses.forEach(grade => {
                 let subjects = grade.match(/10|11/) ? seniorSubjectsList : juniorSubjectsList;
@@ -948,18 +970,39 @@
             loadUniqueSubjects(); 
         }
 
+        // Filter Mark Attendance Subjects based on Roles
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
+            // Admin and Class Teacher can mark Daily School Attendance
+            if (currentUser.role === 'admin' || currentUser.role === 'class_teacher') {
+                subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
+            }
+
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
+                    if(subject !== "Daily School Attendance") {
+                        let canShow = false;
+
+                        // Subject teacher ONLY sees their assigned subject
+                        if (currentUser.role === 'subject_teacher') {
+                            if (currentUser.subject === subject) {
+                                canShow = true;
+                            }
+                        } else {
+                            canShow = true; // Admin & Class Teachers see all
+                        }
+
+                        if (canShow) {
+                            const option = document.createElement('option');
+                            option.value = subject;
+                            option.textContent = subject;
+                            subjectSelect.appendChild(option);
+                        }
+                    }
                 });
             }
         }
@@ -990,7 +1033,7 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    // Show ONLY Bucket subjects (Not Core, Not Daily Attendance)
+                    // Show ONLY Bucket subjects
                     if (subjectCategoriesData[selectedClass] && subjectCategoriesData[selectedClass][subject] !== "Core" && subject !== "Daily School Attendance") {
                         const option = document.createElement('option');
                         option.value = subject;
@@ -1059,6 +1102,31 @@
             });
         }
 
+        // ADD NEW SUBJECT
+        function addNewSubject() {
+            const className = document.getElementById('subjectClass').value;
+            const subjectCat = document.getElementById('subjectCategory').value;
+            const subjectNameRaw = document.getElementById('newSubjectName').value.trim();
+            
+            if (!className) return alert("Please select a class!");
+            if (!subjectNameRaw) return alert("Please enter the subject name!");
+
+            if (!schoolData[className]) schoolData[className] = [];
+            
+            if (!schoolData[className].includes(subjectNameRaw)) {
+                schoolData[className].push(subjectNameRaw);
+                
+                database.ref('schoolData').set(schoolData, (error) => {
+                    if (error) alert("Error saving data: " + error.message);
+                    else { 
+                        database.ref(`subjectCategories/${className}/${subjectNameRaw}`).set(subjectCat);
+                        alert("Subject successfully added!"); 
+                        document.getElementById('newSubjectName').value = ''; 
+                    }
+                });
+            } else alert("This subject already exists in the selected class.");
+        }
+
         // ADD NEW STUDENT
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
@@ -1119,6 +1187,7 @@
             if (confirm("Remove this student?")) database.ref(`students/${grade}/${studentId}`).remove();
         }
 
+        // ADD NEW TEACHER
         function addNewTeacher() {
             const tId = document.getElementById('teacherId').value.trim();
             const tName = document.getElementById('teacherName').value.trim();
@@ -1173,7 +1242,6 @@
             listContainer.innerHTML = '<div class="info-box">Loading students...</div>';
             saveBtn.style.display = 'none';
 
-            // Check if selected subject is a bucket
             let isBucket = false;
             if (subjectCategoriesData[grade] && subjectCategoriesData[grade][subject] && subjectCategoriesData[grade][subject] !== "Core") {
                 isBucket = true;
@@ -1186,7 +1254,6 @@
                 }
                 const allStudents = snapshot.val();
 
-                // If Bucket subject, check enrollments
                 if (isBucket && subject !== "Daily School Attendance") {
                     database.ref(`subjectEnrollments/${grade}/${subject}`).once('value', enrollSnap => {
                         const enrollments = enrollSnap.exists() ? enrollSnap.val() : {};
