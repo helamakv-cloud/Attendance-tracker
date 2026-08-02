@@ -92,11 +92,12 @@
         <div class="login-wrapper" id="loginScreen">
             <div class="login-card">
                 <h2>System Login</h2>
+                
+                <!-- Updated Note without default passwords -->
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
-                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests.<br><br>
-                    <strong>Default Passwords:</strong><br>
-                    Admin: <code>admin123</code> | Tr: <code>class123</code> / <code>subject123</code>
+                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests.
                 </div>
+
                 <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" id="loginUserName" placeholder="e.g. John Doe">
@@ -408,13 +409,13 @@
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         
+        // Passwords kept in code for authentication but hidden from UI
         const rolePasswords = {
             "admin": "admin123",
             "class_teacher": "class123",
             "subject_teacher": "subject123"
         };
 
-        // Added teacherId and subject to currentUser state
         let currentUser = { name: "", role: "", teacherId: "N/A", subject: "N/A" };
 
         window.onload = function() {
@@ -547,7 +548,6 @@
             });
         }
 
-        // Teacher's view of their own requests
         function loadMyLeaveRequests() {
             database.ref('leaveRequests').on('value', snapshot => {
                 const tbody = document.getElementById('myLeaveRequestsBody');
@@ -568,7 +568,7 @@
                     return;
                 }
                 
-                requests.sort((a,b) => b.timestamp - a.timestamp); // Newest first
+                requests.sort((a,b) => b.timestamp - a.timestamp);
                 
                 requests.forEach(req => {
                     let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
@@ -585,7 +585,6 @@
             });
         }
 
-        // Admin's view of all leave requests
         function loadAdminLeaveRequests() {
             database.ref('leaveRequests').on('value', snapshot => {
                 const tbody = document.getElementById('adminLeaveRequestsBody');
@@ -639,7 +638,6 @@
                 database.ref('leaveRequests/' + id).update({ status: status });
             }
         }
-
 
         // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
@@ -837,7 +835,7 @@
 
             database.ref('students/' + grade).once('value', (snapshot) => {
                 listContainer.innerHTML = ''; 
-                if (!snapshot.exists()) { listContainer.innerHTML = '<div class="info-box alert">No students found.</div>'; return; }
+                if (!snapshot.exists()) { listContainer.innerHTML = '<div class="info-box alert">No students found for this class. Please add students first.</div>'; return; }
 
                 let html = `
                     <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
