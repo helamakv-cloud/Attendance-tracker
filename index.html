@@ -31,13 +31,18 @@
         
         .role-badge { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75em; border: 1px solid white; white-space: nowrap; }
         .logout-btn { position: absolute; top: 15px; right: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8em; transition: all 0.3s; }
-        .logout-btn:hover { background: white; color: #4a148c; }
+        .logout-btn:hover { background: #d32f2f; border-color: #d32f2f; color: white; }
         
         /* CONTENT AREA */
         .content { padding: 15px; }
         
+        /* LOGIN SCREEN */
+        .login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .login-card h2 { color: #6a1b9a; margin-bottom: 20px; }
+        
         /* FORMS */
-        .form-group { margin-bottom: 12px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 0.9em; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: white; outline: none; transition: border 0.3s; }
         .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
@@ -77,7 +82,6 @@
             .header h1 { font-size: 2em; margin-top: 0; }
             .grid-2 { grid-template-columns: 1fr 1fr; gap: 20px; }
             .grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-            .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; }
         }
     </style>
 </head>
@@ -86,12 +90,37 @@
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
             <p>Connected with Firebase Realtime Database</p>
-            <div class="role-badge" id="roleBadge">Online Mode</div>
-            <button class="logout-btn" onclick="location.reload()">Refresh</button>
+            <div class="role-badge" id="roleBadge">Not Logged In</div>
+            <!-- Logout Button (Hidden initially) -->
+            <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- Main App -->
-        <div class="content app-main" id="appContent" style="display: block;">
+        <!-- LOGIN SCREEN -->
+        <div class="login-wrapper" id="loginScreen">
+            <div class="login-card">
+                <h2>පද්ධතියට ඇතුල් වන්න</h2>
+                
+                <div class="form-group">
+                    <label>ඔබගේ නම (Your Name)</label>
+                    <input type="text" id="loginUserName" placeholder="උදා: කැලුම් කුමාර">
+                </div>
+
+                <div class="form-group">
+                    <label>ඔබගේ තනතුර (Select Role)</label>
+                    <select id="loginRoleSelect">
+                        <option value="">තනතුර තෝරන්න...</option>
+                        <option value="admin">👨‍💻 Admin (ප්‍රධාන පරිපාලක)</option>
+                        <option value="class_teacher">👨‍🏫 Class Teacher (පන්ති භාර ගුරු)</option>
+                        <option value="subject_teacher">📝 Subject Teacher (විෂයභාර ගුරු)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary btn-full" onclick="login()">ඇතුල් වන්න (Login)</button>
+            </div>
+        </div>
+
+        <!-- Main App (Hidden initially until logged in) -->
+        <div class="content app-main" id="appContent" style="display: none;">
             
             <div class="nav-tabs" id="navTabs">
                 <button class="nav-tab active" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
@@ -105,7 +134,6 @@
                     <h3>Mark Attendance</h3>
                     <div class="info-box">Select date and class first to load specific subjects from Firebase.</div>
                     <div class="grid-2">
-                        <!-- Date Picker Added Here -->
                         <div class="form-group">
                             <label>දිනය (Date)</label>
                             <input type="date" id="attendanceDate">
@@ -147,7 +175,7 @@
 
             <!-- Students Tab -->
             <div class="tab-content" id="students">
-                <!-- Add Student Card (Updated with Address & Phone) -->
+                <!-- Add Student Card -->
                 <div class="card">
                     <h3>Add New Student</h3>
                     <div class="grid-2">
@@ -241,6 +269,12 @@
         // මුල් පන්ති ලැයිස්තුව (6 සිට 11 දක්වා)
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
+        
+        // Current User State
+        let currentUser = {
+            name: "",
+            role: ""
+        };
 
         // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම සහ දිනය සැකසීම
         window.onload = function() {
@@ -255,7 +289,66 @@
             document.getElementById('attendanceDate').value = `${yyyy}-${mm}-${dd}`;
         };
 
-        // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම (viewStudentGrade ඇතුළත්ව)
+        // --- LOGIN & ROLE MANAGEMENT ---
+        function login() {
+            const name = document.getElementById('loginUserName').value.trim();
+            const role = document.getElementById('loginRoleSelect').value;
+
+            if (!name) return alert("කරුණාකර ඔබගේ නම ඇතුළත් කරන්න!");
+            if (!role) return alert("කරුණාකර ඔබගේ තනතුර තෝරන්න!");
+
+            // Save user info
+            currentUser.name = name;
+            currentUser.role = role;
+
+            // Update UI Badge
+            let roleDisplay = "";
+            if(role === 'admin') roleDisplay = "Admin";
+            if(role === 'class_teacher') roleDisplay = "Class Teacher";
+            if(role === 'subject_teacher') roleDisplay = "Subject Teacher";
+            
+            document.getElementById('roleBadge').innerText = `${name} (${roleDisplay})`;
+            
+            // Switch Screens
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'block';
+
+            // Apply Role Permissions (Hide/Show Tabs)
+            applyRolePermissions(role);
+        }
+
+        function logout() {
+            if(confirm("ඔබට පද්ධතියෙන් ඉවත් වීමට අවශ්‍යද? (Are you sure you want to logout?)")) {
+                location.reload(); // Reloads the page to reset state
+            }
+        }
+
+        function applyRolePermissions(role) {
+            const studentsTabBtn = document.getElementById('tab-btn-students');
+            const subjectsTabBtn = document.getElementById('tab-btn-subjects');
+
+            if (role === 'subject_teacher') {
+                // Subject Teacher: Only Attendance
+                studentsTabBtn.style.display = 'none';
+                subjectsTabBtn.style.display = 'none';
+            } else if (role === 'class_teacher') {
+                // Class Teacher: Attendance + Students
+                studentsTabBtn.style.display = 'inline-block';
+                subjectsTabBtn.style.display = 'none';
+            } else if (role === 'admin') {
+                // Admin: All Tabs
+                studentsTabBtn.style.display = 'inline-block';
+                subjectsTabBtn.style.display = 'inline-block';
+            }
+            
+            // Default to Attendance Tab upon login
+            showTab('attendance');
+        }
+
+        // --- END LOGIN LOGIC ---
+
+        // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
             classDropdownIds.forEach(id => {
@@ -279,7 +372,6 @@
                 if (data) {
                     schoolData = data;
                 } else {
-                    // ශ්‍රේණි 6-9 සහ 10-11 සඳහා වෙනම නිවැරදි විෂය ලැයිස්තු සැකසීම
                     const juniorSubjects = [
                         "ගණිතය (Mathematics)", "විද්‍යාව (Science)", "ඉතිහාසය (History)", 
                         "ඉංග්‍රීසි (English)", "සිංහල (Sinhala)", "බුද්ධ ධර්මය (Buddhism)", 
@@ -325,7 +417,7 @@
             }
         }
 
-        // නව විෂයයක් Firebase වෙත එකතු කිරීම
+        // නව විෂයයක් Firebase වෙත එකතු කිරීම (Admin Only)
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
@@ -350,7 +442,7 @@
             }
         }
 
-        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම (ලිපිනය සහ දුරකථන අංකය ඇතුළත්ව)
+        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම (Admin/Class Teacher)
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const name = document.getElementById('studentName').value.trim();
@@ -361,22 +453,19 @@
                 return alert("කරුණාකර පන්තිය සහ සිසුවාගේ නම ඇතුළත් කරන්න!");
             }
 
-            // 'students/Grade X/' යටතේ සිසුවා සේව් කිරීම
             database.ref('students/' + grade).push({
                 name: name,
-                address: address || "සපයා නැත", // If empty, save default text
+                address: address || "සපයා නැත",
                 phone: phone || "සපයා නැත"
             }, (error) => {
                 if (error) {
                     alert("දෝෂයක්: " + error.message);
                 } else {
                     alert("සිසුවා සාර්ථකව ඇතුළත් කරන ලදී!");
-                    // Clear inputs
                     document.getElementById('studentName').value = ''; 
                     document.getElementById('studentAddress').value = '';
                     document.getElementById('studentPhone').value = '';
                     
-                    // Update list if the same grade is selected in the view
                     if(document.getElementById('viewStudentGrade').value === grade) {
                         loadStudentList();
                     }
@@ -384,7 +473,7 @@
             });
         }
 
-        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම (තේරූ දිනය සමඟ)
+        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම
         function loadStudentsForAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
@@ -401,14 +490,13 @@
             saveBtn.style.display = 'none';
 
             database.ref('students/' + grade).once('value', (snapshot) => {
-                listContainer.innerHTML = ''; // Clear loading text
+                listContainer.innerHTML = ''; 
                 
                 if (!snapshot.exists()) {
                     listContainer.innerHTML = '<div class="info-box">මෙම පන්තිය සඳහා සිසුන් නොමැත. කරුණාකර පළමුව සිසුන් ඇතුළත් කරන්න.</div>';
                     return;
                 }
 
-                // Show selected date
                 let html = `<h4 style="color: #6a1b9a; margin-bottom: 10px;">දිනය (Date): ${dateStr}</h4>`;
                 
                 snapshot.forEach((childSnapshot) => {
@@ -428,7 +516,6 @@
                 listContainer.innerHTML = html;
                 saveBtn.style.display = 'block';
 
-                // Change label text based on checkbox state
                 document.querySelectorAll('.attendance-check').forEach(chk => {
                     chk.addEventListener('change', function() {
                         const labelSpan = this.nextElementSibling;
@@ -444,7 +531,7 @@
             });
         }
 
-        // පැමිණීම Firebase වෙත සුරැකීම (තේරූ දිනය භාවිතා කරමින්)
+        // පැමිණීම Firebase වෙත සුරැකීම
         function saveAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
@@ -461,11 +548,11 @@
                 const studentName = chk.getAttribute('data-name');
                 attendanceData[studentId] = {
                     name: studentName,
-                    status: chk.checked ? "Present" : "Absent"
+                    status: chk.checked ? "Present" : "Absent",
+                    markedBy: currentUser.name // Store who marked the attendance
                 };
             });
 
-            // Path: attendance / 2026-08-02 / Grade 10 / Science / 1st Period
             database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).set(attendanceData, (error) => {
                 if(error) {
                     alert("සුරැකීමේ දෝෂයක්: " + error.message);
@@ -473,14 +560,13 @@
                     alert("පැමිණීම සාර්ථකව සටහන් කරන ලදී!");
                     document.getElementById('attendanceList').innerHTML = '';
                     document.getElementById('saveAttendanceBtn').style.display = 'none';
-                    // Reset dropdowns
                     document.getElementById('selectSubject').value = '';
                     document.getElementById('selectPeriod').value = '';
                 }
             });
         }
 
-        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම (Load Student List in Table - ලිපින සහ දුරකථන අංක නොපෙන්වයි)
+        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
@@ -492,7 +578,6 @@
 
             tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
 
-            // Realtime listener for the selected grade
             database.ref('students/' + grade).on('value', (snapshot) => {
                 tbody.innerHTML = '';
                 
@@ -526,12 +611,12 @@
             });
         }
 
-        // සිසුවෙකු ඉවත් කිරීම (Remove Student from Firebase)
+        // සිසුවෙකු ඉවත් කිරීම
         function removeStudent(grade, studentId) {
             if (confirm("මෙම සිසුවා ලැයිස්තුවෙන් ඉවත් කිරීමට අවශ්‍ය බව ඔබට විශ්වාසද?")) {
                 database.ref(`students/${grade}/${studentId}`).remove()
                     .then(() => {
-                        // Realtime listener in loadStudentList will automatically update the UI
+                        // Realtime update handles UI change
                     })
                     .catch((error) => {
                         alert("ඉවත් කිරීමේ දෝෂයක්: " + error.message);
