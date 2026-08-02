@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker</title>
+    <title>Smart Attendance Tracker - Firebase Edition</title>
     
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -12,7 +12,7 @@
     <!-- Chart.js for dashboard charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase Compat SDK - REALTIME DATABASE -->
+    <!-- Firebase App (compat) & Realtime Database SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -81,9 +81,9 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Efficient Student Attendance Management System</p>
-            <div class="role-badge" id="roleBadge">Administrator</div>
-            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <p>Connected with Firebase Realtime Database</p>
+            <div class="role-badge" id="roleBadge">Online Mode</div>
+            <button class="logout-btn" onclick="location.reload()">Refresh</button>
         </div>
 
         <!-- Main App -->
@@ -99,11 +99,10 @@
             <div class="tab-content" id="attendance" style="display: block;">
                 <div class="card">
                     <h3>Mark Attendance</h3>
-                    <div class="info-box">Select class first to filter relevant subjects.</div>
+                    <div class="info-box">Select class first to load its subjects from Firebase.</div>
                     <div class="grid-3">
                         <div class="form-group">
                             <label>Select Class</label>
-                            <!-- පන්තිය තේරූ වහාම විෂයයන් ලෝඩ් වීමට onchange එක කෙලින්ම එකතු කර ඇත -->
                             <select id="selectClass" onchange="filterSubjects()">
                                 <option value="">Select Class</option>
                             </select>
@@ -155,7 +154,7 @@
             <!-- Subjects Tab -->
             <div class="tab-content" id="subjects">
                 <div class="card">
-                    <h3>📚 Manage Subjects</h3>
+                    <h3>📚 Manage Subjects (Firebase Database)</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Grade / Class</label>
@@ -168,7 +167,7 @@
                             <input type="text" id="newSubjectName" placeholder="e.g., Mathematics, Science">
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject</button>
+                    <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject to Firebase</button>
                 </div>
             </div>
 
@@ -179,31 +178,33 @@
     </div>
 
     <script>
-        // Grade 6 සිට 11 දක්වා පන්ති සහ විෂයයන් දත්ත ගබඩාව
-        const schoolData = {
-            "Grade 6": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
-            "Grade 7": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
-            "Grade 8": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
-            "Grade 9": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
-            "Grade 10": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"],
-            "Grade 11": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"]
+        // FIREBASE CONFIGURATION (ඔබ ලබාදුන් URL එක සමග සකස් කරන ලදී)
+        const firebaseConfig = {
+            databaseURL: "https://smart-attendance-e2b89-default-rtdb.firebaseio.com"
         };
 
-        // වෙබ් පිටුව ලෝඩ් වූ වහාම පන්ති ඩ්‍රොප්ඩවුන් පිරවීම
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // මුල් පන්ති ලැයිස්තුව
+        const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
+        let schoolData = {};
+
+        // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම
         window.onload = function() {
             loadAllClasses();
+            fetchDataFromFirebase();
         };
 
-        // සියලුම ඩ්‍රොප්ඩවුන් වෙත පන්ති ඇතුළත් කිරීම
+        // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass'];
-            const classes = Object.keys(schoolData);
-
             classDropdownIds.forEach(id => {
                 const selectElement = document.getElementById(id);
                 if (selectElement) {
                     selectElement.innerHTML = '<option value="">Select Class</option>';
-                    classes.forEach(className => {
+                    defaultClasses.forEach(className => {
                         const option = document.createElement('option');
                         option.value = className;
                         option.textContent = className;
@@ -213,7 +214,30 @@
             });
         }
 
-        // පන්තියක් තේරූ විට අදාළ විෂයයන් ලෝඩ් කිරීම (Filter Subjects)
+        // Firebase එකෙන් දත්ත ලබා ගැනීම (Realtime Sync)
+        function fetchDataFromFirebase() {
+            database.ref('schoolData').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    schoolData = data;
+                } else {
+                    // මුල් වතාවට දත්ත නොමැති නම් සාමාන්‍ය විෂයයන් සකස් කර Firebase එකට දැමීම
+                    schoolData = {
+                        "Grade 6": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+                        "Grade 7": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+                        "Grade 8": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+                        "Grade 9": ["Mathematics", "Science", "History", "English", "Buddhism", "Sinhala"],
+                        "Grade 10": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"],
+                        "Grade 11": ["Mathematics", "Science", "ICT", "Commerce", "History", "English"]
+                    };
+                    database.ref('schoolData').set(schoolData);
+                }
+                // දැනට පන්තියක් තෝරා ඇත්නම් විෂය ලැයිස්තුව යාවත්කාලීන කිරීම
+                filterSubjects();
+            });
+        }
+
+        // පන්තියක් තේරූ විට අදාළ විෂයයන් ලෝඩ් කිරීම
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
@@ -232,7 +256,7 @@
             }
         }
 
-        // නව විෂයයක් එකතු කිරීම
+        // නව විෂයයක් Firebase වෙත එකතු කිරීම
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
@@ -246,16 +270,22 @@
                 return;
             }
 
+            if (!schoolData[className]) {
+                schoolData[className] = [];
+            }
+
             if (!schoolData[className].includes(subjectName)) {
                 schoolData[className].push(subjectName);
-                alert("විෂය සාර්ථකව එකතු කරන ලදී!");
-                document.getElementById('newSubjectName').value = '';
                 
-                // Attendance ටැබ් එකේ එම පන්තියම දැනට තෝරා තිබේ නම් විෂය ලැයිස්තුව යාවත්කාලීන කිරීම
-                const currentSelectedClass = document.getElementById('selectClass').value;
-                if (currentSelectedClass === className) {
-                    filterSubjects();
-                }
+                // Firebase වෙත දත්ත යැවීම
+                database.ref('schoolData').set(schoolData, (error) => {
+                    if (error) {
+                        alert("දත්ත සුරැකීමේ දෝෂයක් ඇතිවිය: " + error.message);
+                    } else {
+                        alert("විෂය සාර්ථකව Firebase වෙත එකතු කරන ලදී!");
+                        document.getElementById('newSubjectName').value = '';
+                    }
+                });
             } else {
                 alert("මෙම විෂය දැනටමත් මෙම පන්තියට ඇතුළත් කර ඇත.");
             }
