@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker</title>
+    <title>Smart Attendance Tracker - Firebase Edition</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -91,7 +91,7 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Realtime Database</p>
+            <p>Connected with Firebase Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
@@ -188,7 +188,7 @@
                 </div>
             </div>
 
-            <!-- VIEW ATTENDANCE TAB (NEW) -->
+            <!-- VIEW ATTENDANCE TAB -->
             <div class="tab-content" id="view-attendance">
                 <div class="card">
                     <h3>👁️ Real-time Attendance Viewer</h3>
@@ -481,6 +481,7 @@
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         
+        // Passwords kept in code for authentication but hidden from UI
         const rolePasswords = {
             "admin": "admin123",
             "class_teacher": "class123",
@@ -819,8 +820,9 @@
                 const data = snapshot.val();
                 if (data) schoolData = data;
                 else {
-                    const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
-                    const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
+                    // Added Daily School Attendance to default subjects
+                    const juniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
+                    const seniorSubjects = ["Daily School Attendance", "Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
                     schoolData = { "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects] };
                     database.ref('schoolData').set(schoolData);
                 }
