@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -43,19 +43,16 @@
         .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
 
         /* BUTTONS */
-        .btn { padding: 10px 15px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
         .btn-full { width: 100%; }
         .btn-primary { background: #6a1b9a; color: white; }
         .btn-primary:hover { background: #4a148c; }
+        .btn-success { background: #2e7d32; color: white; }
+        .btn-success:hover { background: #1b5e20; }
         
-        .btn-edit { background: #ff9800; color: white; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
-        .btn-edit:hover { background: #f57c00; }
-        
-        .btn-delete { background: #f44336; color: white; padding: 5px 10px; font-size: 12px; }
-        .btn-delete:hover { background: #d32f2f; }
-
-        /* MESSAGES */
+        /* MESSAGES & LISTS */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
+        .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
         /* TABS */
         .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
@@ -68,14 +65,6 @@
         .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
         
         .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
-
-        /* ATTENDANCE TABLE */
-        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; }
-        .att-table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; }
-        .att-table th, .att-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9em; }
-        .att-table th { background: #6a1b9a; color: white; }
-        .status-radios { display: flex; gap: 15px; }
-        .status-radios label { cursor: pointer; font-weight: normal; display: flex; align-items: center; gap: 5px; }
         
         /* UTILS */
         .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
@@ -112,12 +101,12 @@
             <!-- Attendance Tab -->
             <div class="tab-content" id="attendance" style="display: block;">
                 <div class="card">
-                    <h3>Mark Attendance & Student Management</h3>
-                    <div class="info-box">Select Class, Subject, and Period to load students, mark attendance, or manage student details.</div>
+                    <h3>Mark Attendance</h3>
+                    <div class="info-box">Select class first to load its specific subjects from Firebase.</div>
                     <div class="grid-3">
                         <div class="form-group">
                             <label>Select Class</label>
-                            <select id="selectClass" onchange="onClassChangeForAttendance()">
+                            <select id="selectClass" onchange="filterSubjects()">
                                 <option value="">Select Class</option>
                             </select>
                         </div>
@@ -128,53 +117,33 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Select Period & Date</label>
-                            <div style="display: flex; gap: 5px;">
-                                <select id="selectPeriod" style="flex: 2;">
-                                    <option value="">Select Period</option>
-                                    <option value="Daily Attendance">Daily Attendance</option>
-                                    <option value="1">1st Period</option>
-                                    <option value="2">2nd Period</option>
-                                    <option value="3">3rd Period</option>
-                                    <option value="4">4th Period</option>
-                                    <option value="5">5th Period</option>
-                                    <option value="6">6th Period</option>
-                                    <option value="7">7th Period</option>
-                                    <option value="8">8th Period</option>
-                                </select>
-                                <input type="date" id="attendanceDate" style="flex: 2;">
-                            </div>
+                            <label>Select Period</label>
+                            <select id="selectPeriod">
+                                <option value="">Select Period</option>
+                                <option value="Daily Attendance">🏫 Daily School Attendance</option>
+                                <option value="1">1st Period</option>
+                                <option value="2">2nd Period</option>
+                                <option value="3">3rd Period</option>
+                                <option value="4">4th Period</option>
+                                <option value="5">5th Period</option>
+                                <option value="6">6th Period</option>
+                                <option value="7">7th Period</option>
+                                <option value="8">8th Period</option>
+                            </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="loadStudentsForAttendance()">Load Students List</button>
-                </div>
-
-                <!-- Students Attendance List Container -->
-                <div class="card" id="attendanceListCard" style="display: none;">
-                    <h3>Student List & Actions</h3>
-                    <div class="table-responsive">
-                        <table class="att-table">
-                            <thead>
-                                <tr>
-                                    <th>Admission No</th>
-                                    <th>Student Name</th>
-                                    <th>Attendance Status</th>
-                                    <th>Actions (Edit / Delete)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody">
-                                <!-- Dynamic Students will load here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <button class="btn btn-primary btn-full" style="margin-top: 15px;" onclick="saveAttendanceToFirebase()">Save Attendance to Firebase</button>
+                    <button class="btn btn-primary btn-full" onclick="loadStudentsForAttendance()">සිසුන් පෙන්වන්න (Load Students)</button>
+                    
+                    <div id="attendanceList" style="margin-top: 15px;"></div>
+                    <button class="btn btn-success btn-full" id="saveAttendanceBtn" style="display: none; margin-top: 15px;" onclick="saveAttendance()">පැමිණීම සුරකින්න (Save Attendance)</button>
                 </div>
             </div>
 
             <!-- Students Tab -->
             <div class="tab-content" id="students">
+                <!-- Add Student Card -->
                 <div class="card">
-                    <h3>Add New Student (Admission No as Primary Key)</h3>
+                    <h3>Add New Student</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Grade & Class</label>
@@ -183,32 +152,46 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Admission Number (ID)</label>
-                            <input type="text" id="studentAdmissionNo" placeholder="e.g., 4512">
-                        </div>
-                    </div>
-                    <div class="grid-2" style="margin-top: 10px;">
-                        <div class="form-group">
                             <label>Student Name</label>
-                            <input type="text" id="studentName" placeholder="Enter student full name">
-                        </div>
-                        <div class="form-group">
-                            <label>Guardian's Phone Number</label>
-                            <input type="tel" id="guardianPhone" placeholder="e.g., 0712345678">
+                            <input type="text" id="studentName" placeholder="Enter name">
                         </div>
                     </div>
-                    <div class="form-group" style="margin-top: 10px;">
-                        <label>Student Address</label>
-                        <input type="text" id="studentAddress" placeholder="Enter home address">
+                    <button class="btn btn-primary btn-full" onclick="addNewStudent()">සිසුවා ඇතුළත් කරන්න (Add Student)</button>
+                </div>
+
+                <!-- Student List & Actions Card -->
+                <div class="card" style="margin-top: 20px;">
+                    <h3>📋 Student List & Actions</h3>
+                    <div class="info-box">මෙහි සිසුන්ගේ ලිපින හෝ දුරකථන අංක පෙන්වන්නේ නැත. Grade සහ නම පමණක් පෙන්වයි.</div>
+                    
+                    <div class="form-group">
+                        <label>පන්තිය තෝරන්න (Select Grade to View)</label>
+                        <select id="viewStudentGrade" onchange="loadStudentList()">
+                            <option value="">Select Class</option>
+                        </select>
                     </div>
-                    <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="addNewStudent()">Add Student to Firebase</button>
+
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                            <thead>
+                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">Student Name</th>
+                                    <th style="padding: 12px; color: #4a148c;">Grade</th>
+                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentListTableBody">
+                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">කරුණාකර පන්තියක් තෝරන්න</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Subjects Tab -->
             <div class="tab-content" id="subjects">
                 <div class="card">
-                    <h3>📚 Manage Subjects</h3>
+                    <h3>📚 Manage Subjects (Firebase Database)</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Grade / Class</label>
@@ -218,7 +201,7 @@
                         </div>
                         <div class="form-group">
                             <label>Subject Name</label>
-                            <input type="text" id="newSubjectName" placeholder="e.g., Mathematics, Science">
+                            <input type="text" id="newSubjectName" placeholder="e.g., ගණිතය, විද්‍යාව, ICT">
                         </div>
                     </div>
                     <button class="btn btn-primary btn-full" onclick="addNewSubject()">Add Subject to Firebase</button>
@@ -231,29 +214,29 @@
         </div>
     </div>
 
-    <!-- Edit Student Modal Form / Prompt Logic handled via JS -->
-
     <script>
         // FIREBASE CONFIGURATION
         const firebaseConfig = {
             databaseURL: "https://smart-attendance-e2b89-default-rtdb.firebaseio.com"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        // මුල් පන්ති ලැයිස්තුව (6 සිට 11 දක්වා)
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
-        let studentsData = {};
 
+        // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම
         window.onload = function() {
             loadAllClasses();
             fetchDataFromFirebase();
-            document.getElementById('attendanceDate').valueAsDate = new Date();
         };
 
+        // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම (viewStudentGrade ඇතුළත්ව)
         function loadAllClasses() {
-            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass'];
+            const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
             classDropdownIds.forEach(id => {
                 const selectElement = document.getElementById(id);
                 if (selectElement) {
@@ -268,45 +251,65 @@
             });
         }
 
+        // Firebase එකෙන් දත්ත ලබා ගැනීම (Realtime Sync)
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     schoolData = data;
                 } else {
-                    const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
-                    const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala", "Buddhism", "ICT", "Commerce & Accounting", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
+                    // ශ්‍රේණි 6-9 සහ 10-11 සඳහා වෙනම නිවැරදි විෂය ලැයිස්තු සැකසීම
+                    const juniorSubjects = [
+                        "ගණිතය (Mathematics)", 
+                        "විද්‍යාව (Science)", 
+                        "ඉතිහාසය (History)", 
+                        "ඉංග්‍රීසි (English)", 
+                        "සිංහල (Sinhala)", 
+                        "බුද්ධ ධර්මය (Buddhism)", 
+                        "පුරවැසි අධ්‍යාපනය (Civics)", 
+                        "භූගෝල විද්‍යාව (Geography)", 
+                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", 
+                        "ප්‍රායෝගික කලා (Practical Arts)"
+                    ];
+
+                    const seniorSubjects = [
+                        "ගණිතය (Mathematics)", 
+                        "විද්‍යාව (Science)", 
+                        "ඉතිහාසය (History)", 
+                        "ඉංග්‍රීසි (English)", 
+                        "සිංහල (Sinhala)", 
+                        "බුද්ධ ධර්මය (Buddhism)", 
+                        "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)", 
+                        "වාණිජ්‍යය හා ගිණුම්කරණය (Commerce)", 
+                        "පුරවැසි අධ්‍යාපනය (Civics)", 
+                        "භූගෝල විද්‍යාව (Geography)", 
+                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)",
+                        "චිත්‍ර කලාව (Art)",
+                        "නැටුම් (Dancing)",
+                        "සංගීතය (Music)"
+                    ];
 
                     schoolData = {
-                        "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects],
-                        "Grade 8": [...juniorSubjects], "Grade 9": [...juniorSubjects],
-                        "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects]
+                        "Grade 6": [...juniorSubjects],
+                        "Grade 7": [...juniorSubjects],
+                        "Grade 8": [...juniorSubjects],
+                        "Grade 9": [...juniorSubjects],
+                        "Grade 10": [...seniorSubjects],
+                        "Grade 11": [...seniorSubjects]
                     };
                     database.ref('schoolData').set(schoolData);
                 }
                 filterSubjects();
             });
-
-            database.ref('students').on('value', (snapshot) => {
-                studentsData = snapshot.val() || {};
-                // If attendance list is currently open, refresh it dynamically
-                const attendanceCard = document.getElementById('attendanceListCard');
-                if (attendanceCard && attendanceCard.style.display === 'block') {
-                    loadStudentsForAttendance();
-                }
-            });
         }
 
-        function onClassChangeForAttendance() {
-            filterSubjects();
-            document.getElementById('attendanceListCard').style.display = 'none';
-        }
-
+        // පන්තියක් තේරූ විට අදාළ ශ්‍රේණියට අදාළ විෂයයන් පමණක් ලෝඩ් කිරීම
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
             
             if (!subjectSelect) return;
+
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
             if (selectedClass && schoolData[selectedClass]) {
@@ -319,200 +322,210 @@
             }
         }
 
-        function loadStudentsForAttendance() {
-            const className = document.getElementById('selectClass').value;
-            const subject = document.getElementById('selectSubject').value;
-            const period = document.getElementById('selectPeriod').value;
-
-            if (!className || !subject || !period) {
-                alert("Please select Class, Subject, and Period!");
-                return;
-            }
-
-            const tableBody = document.getElementById('attendanceTableBody');
-            tableBody.innerHTML = '';
-
-            const classStudents = studentsData[className] ? Object.entries(studentsData[className]) : [];
-
-            if (classStudents.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">No students found in this class. Please add students from the "Students" tab.</td></tr>';
-            } else {
-                classStudents.forEach(([admissionNo, student]) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><strong>${admissionNo}</strong></td>
-                        <td>
-                            ${student.name}<br>
-                            <small style="color: #666;">Phone: ${student.phone || 'N/A'} | Addr: ${student.address || 'N/A'}</small>
-                        </td>
-                        <td>
-                            <div class="status-radios">
-                                <label><input type="radio" name="att_${admissionNo}" value="Present" checked> Present</label>
-                                <label><input type="radio" name="att_${admissionNo}" value="Absent"> Absent</label>
-                            </div>
-                        </td>
-                        <td>
-                            <button class="btn btn-edit" onclick="editStudent('${className}', '${admissionNo}')">Edit</button>
-                            <button class="btn btn-delete" onclick="deleteStudent('${className}', '${admissionNo}')">Delete</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-
-            document.getElementById('attendanceListCard').style.display = 'block';
-        }
-
-        function saveAttendanceToFirebase() {
-            const className = document.getElementById('selectClass').value;
-            const subject = document.getElementById('selectSubject').value;
-            const period = document.getElementById('selectPeriod').value;
-            const date = document.getElementById('attendanceDate').value;
-
-            if (!className || !subject || !period || !date) {
-                alert("Please select all required details!");
-                return;
-            }
-
-            const classStudents = studentsData[className] ? Object.keys(studentsData[className]) : [];
-            if (classStudents.length === 0) {
-                alert("No students available!");
-                return;
-            }
-
-            let attendanceRecord = {};
-            classStudents.forEach(admissionNo => {
-                const radios = document.getElementsByName(`att_${admissionNo}`);
-                let status = 'Present';
-                for (const radio of radios) {
-                    if (radio.checked) {
-                        status = radio.value;
-                        break;
-                    }
-                }
-                attendanceRecord[admissionNo] = {
-                    name: studentsData[className][admissionNo].name,
-                    status: status
-                };
-            });
-
-            const safeSubjectKey = subject.replace(/[.#$\[\]\/]/g, '_');
-            const safePeriodKey = period.replace(/[.#$\[\]\/]/g, '_');
-            const recordPath = `attendanceRecords/${className}/${date}/${safeSubjectKey}_Period_${safePeriodKey}`;
-
-            database.ref(recordPath).set(attendanceRecord, (error) => {
-                if (error) {
-                    alert("Error saving attendance: " + error.message);
-                } else {
-                    alert("Attendance successfully saved to Firebase!");
-                }
-            });
-        }
-
-        function addNewStudent() {
-            const className = document.getElementById('studentGrade').value;
-            const admissionNo = document.getElementById('studentAdmissionNo').value.trim();
-            const studentName = document.getElementById('studentName').value.trim();
-            const guardianPhone = document.getElementById('guardianPhone').value.trim();
-            const studentAddress = document.getElementById('studentAddress').value.trim();
-
-            if (!className) {
-                alert("Please select a class!");
-                return;
-            }
-            if (!admissionNo) {
-                alert("Please enter Admission Number!");
-                return;
-            }
-            if (!studentName) {
-                alert("Please enter Student Name!");
-                return;
-            }
-
-            database.ref(`students/${className}/${admissionNo}`).once('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    alert("A student with this Admission Number already exists in this class!");
-                } else {
-                    database.ref(`students/${className}/${admissionNo}`).set({
-                        name: studentName,
-                        phone: guardianPhone,
-                        address: studentAddress
-                    }, (error) => {
-                        if (error) {
-                            alert("Error: " + error.message);
-                        } else {
-                            alert("Student successfully added to Firebase!");
-                            document.getElementById('studentAdmissionNo').value = '';
-                            document.getElementById('studentName').value = '';
-                            document.getElementById('guardianPhone').value = '';
-                            document.getElementById('studentAddress').value = '';
-                        }
-                    });
-                }
-            });
-        }
-
-        // Edit Student Function
-        function editStudent(className, admissionNo) {
-            const student = studentsData[className][admissionNo];
-            
-            const newName = prompt("Edit Student Name:", student.name || "");
-            if (newName === null) return; // Cancelled
-
-            const newPhone = prompt("Edit Guardian's Phone Number:", student.phone || "");
-            if (newPhone === null) return;
-
-            const newAddress = prompt("Edit Student Address:", student.address || "");
-            if (newAddress === null) return;
-
-            database.ref(`students/${className}/${admissionNo}`).update({
-                name: newName.trim(),
-                phone: newPhone.trim(),
-                address: newAddress.trim()
-            }, (error) => {
-                if (error) {
-                    alert("Error updating student: " + error.message);
-                } else {
-                    alert("Student details updated successfully!");
-                }
-            });
-        }
-
-        // Delete Student Function
-        function deleteStudent(className, admissionNo) {
-            if (confirm(`Are you sure you want to delete student with Admission No: ${admissionNo}?`)) {
-                database.ref(`students/${className}/${admissionNo}`).remove((error) => {
-                    if (error) {
-                        alert("Error deleting student: " + error.message);
-                    } else {
-                        alert("Student deleted successfully from database!");
-                    }
-                });
-            }
-        }
-
+        // නව විෂයයක් Firebase වෙත එකතු කිරීම
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
 
-            if (!className || !subjectName) {
-                alert("Please select class and enter subject name!");
-                return;
-            }
+            if (!className) return alert("කරුණාකර පන්තියක් තෝරන්න!");
+            if (!subjectName) return alert("කරුණාකර විෂය නම ඇතුළත් කරන්න!");
+
+            if (!schoolData[className]) schoolData[className] = [];
 
             if (!schoolData[className].includes(subjectName)) {
                 schoolData[className].push(subjectName);
                 database.ref('schoolData').set(schoolData, (error) => {
-                    if (!error) {
-                        alert("Subject successfully added!");
+                    if (error) {
+                        alert("දත්ත සුරැකීමේ දෝෂයක් ඇතිවිය: " + error.message);
+                    } else {
+                        alert("විෂය සාර්ථකව Firebase වෙත එකතු කරන ලදී!");
                         document.getElementById('newSubjectName').value = '';
                     }
                 });
             } else {
-                alert("This subject already exists.");
+                alert("මෙම විෂය දැනටමත් මෙම පන්තියට ඇතුළත් කර ඇත.");
             }
         }
 
+        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම
+        function addNewStudent() {
+            const grade = document.getElementById('studentGrade').value;
+            const name = document.getElementById('studentName').value.trim();
+
+            if (!grade || !name) {
+                return alert("කරුණාකර පන්තිය සහ සිසුවාගේ නම ඇතුළත් කරන්න!");
+            }
+
+            // 'students/Grade X/' යටතේ සිසුවා සේව් කිරීම
+            database.ref('students/' + grade).push({
+                name: name
+            }, (error) => {
+                if (error) {
+                    alert("දෝෂයක්: " + error.message);
+                } else {
+                    alert("සිසුවා සාර්ථකව ඇතුළත් කරන ලදී!");
+                    document.getElementById('studentName').value = ''; // Clear input
+                    
+                    // Update list if the same grade is selected in the view
+                    if(document.getElementById('viewStudentGrade').value === grade) {
+                        loadStudentList();
+                    }
+                }
+            });
+        }
+
+        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම
+        function loadStudentsForAttendance() {
+            const grade = document.getElementById('selectClass').value;
+            const subject = document.getElementById('selectSubject').value;
+            const period = document.getElementById('selectPeriod').value;
+
+            if (!grade || !subject || !period) {
+                return alert("කරුණාකර පන්තිය, විෂය සහ කාලපරිච්ඡේදය තෝරන්න!");
+            }
+
+            const listContainer = document.getElementById('attendanceList');
+            const saveBtn = document.getElementById('saveAttendanceBtn');
+            listContainer.innerHTML = '<div class="info-box">Loading students...</div>';
+            saveBtn.style.display = 'none';
+
+            database.ref('students/' + grade).once('value', (snapshot) => {
+                listContainer.innerHTML = ''; // Clear loading text
+                
+                if (!snapshot.exists()) {
+                    listContainer.innerHTML = '<div class="info-box">මෙම පන්තිය සඳහා සිසුන් නොමැත. කරුණාකර පළමුව සිසුන් ඇතුළත් කරන්න.</div>';
+                    return;
+                }
+
+                let html = `<h4>Date: ${new Date().toLocaleDateString()}</h4>`;
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
+                    const studentId = childSnapshot.key;
+                    
+                    html += `
+                    <div class="student-row">
+                        <span>${student.name}</span>
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" class="attendance-check" data-id="${studentId}" data-name="${student.name}" checked style="width:20px; height:20px; cursor:pointer;">
+                            <span style="margin-left: 10px; font-weight:600; color:#2e7d32;">Present</span>
+                        </label>
+                    </div>`;
+                });
+                
+                listContainer.innerHTML = html;
+                saveBtn.style.display = 'block';
+
+                // Change label text based on checkbox state
+                document.querySelectorAll('.attendance-check').forEach(chk => {
+                    chk.addEventListener('change', function() {
+                        const labelSpan = this.nextElementSibling;
+                        if(this.checked) {
+                            labelSpan.textContent = 'Present';
+                            labelSpan.style.color = '#2e7d32';
+                        } else {
+                            labelSpan.textContent = 'Absent';
+                            labelSpan.style.color = '#c62828';
+                        }
+                    });
+                });
+            });
+        }
+
+        // පැමිණීම Firebase වෙත සුරැකීම
+        function saveAttendance() {
+            const grade = document.getElementById('selectClass').value;
+            const subject = document.getElementById('selectSubject').value;
+            const period = document.getElementById('selectPeriod').value;
+            const dateStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            
+            const checkboxes = document.querySelectorAll('.attendance-check');
+            let attendanceData = {};
+            
+            checkboxes.forEach(chk => {
+                const studentId = chk.getAttribute('data-id');
+                const studentName = chk.getAttribute('data-name');
+                attendanceData[studentId] = {
+                    name: studentName,
+                    status: chk.checked ? "Present" : "Absent"
+                };
+            });
+
+            // Path: attendance / 2026-08-02 / Grade 10 / Science / 1st Period
+            database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).set(attendanceData, (error) => {
+                if(error) {
+                    alert("සුරැකීමේ දෝෂයක්: " + error.message);
+                } else {
+                    alert("පැමිණීම සාර්ථකව සටහන් කරන ලදී!");
+                    document.getElementById('attendanceList').innerHTML = '';
+                    document.getElementById('saveAttendanceBtn').style.display = 'none';
+                    // Reset dropdowns
+                    document.getElementById('selectSubject').value = '';
+                    document.getElementById('selectPeriod').value = '';
+                }
+            });
+        }
+
+        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම (Load Student List in Table)
+        function loadStudentList() {
+            const grade = document.getElementById('viewStudentGrade').value;
+            const tbody = document.getElementById('studentListTableBody');
+
+            if (!grade) {
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">කරුණාකර පන්තියක් තෝරන්න</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
+
+            // Realtime listener for the selected grade
+            database.ref('students/' + grade).on('value', (snapshot) => {
+                tbody.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #c62828;">සිසුන් නොමැත (No students found)</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
+                    const studentId = childSnapshot.key;
+
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = "1px solid #eee";
+                    
+                    tr.innerHTML = `
+                        <td style="padding: 12px; font-weight: 500;">${student.name}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
+                                ${grade}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.3s;">
+                                ඉවත් කරන්න
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        // සිසුවෙකු ඉවත් කිරීම (Remove Student from Firebase)
+        function removeStudent(grade, studentId) {
+            if (confirm("මෙම සිසුවා ලැයිස්තුවෙන් ඉවත් කිරීමට අවශ්‍ය බව ඔබට විශ්වාසද?")) {
+                database.ref(`students/${grade}/${studentId}`).remove()
+                    .then(() => {
+                        // Realtime listener in loadStudentList will automatically update the UI
+                        // alert("සිසුවා සාර්ථකව ඉවත් කරන ලදී.");
+                    })
+                    .catch((error) => {
+                        alert("ඉවත් කිරීමේ දෝෂයක්: " + error.message);
+                    });
+            }
+        }
+
+        // ටැබ් මාරු කිරීමේ ශ්‍රිතය
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
