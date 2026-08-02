@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Attendance Tracker - Firebase Edition</title>
     
-    <!-- jsPDF for PDF generation -->
+    <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
-    <!-- Chart.js for dashboard charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase App (compat) & Realtime Database SDK -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -24,7 +22,7 @@
         
         .container { background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 1200px; width: 100%; margin: 0 auto; overflow: hidden; }
         
-        /* HEADER - Deep Purple Theme */
+        /* HEADER */
         .header { background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%); color: white; padding: 20px 15px; text-align: center; position: relative; }
         .header h1 { font-size: 1.5em; margin-bottom: 5px; margin-top: 35px; }
         .header p { opacity: 0.9; font-size: 0.85em; }
@@ -33,10 +31,8 @@
         .logout-btn { position: absolute; top: 15px; right: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8em; transition: all 0.3s; }
         .logout-btn:hover { background: #d32f2f; border-color: #d32f2f; color: white; }
         
-        /* CONTENT AREA */
+        /* CONTENT & LOGIN */
         .content { padding: 15px; }
-        
-        /* LOGIN SCREEN */
         .login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 60vh; padding: 20px; }
         .login-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
         .login-card h2 { color: #6a1b9a; margin-bottom: 20px; }
@@ -54,28 +50,24 @@
         .btn-primary:hover { background: #4a148c; }
         .btn-success { background: #2e7d32; color: white; }
         .btn-success:hover { background: #1b5e20; }
+        .btn-danger { background: #c62828; color: white; }
         
-        /* MESSAGES & LISTS */
+        /* BOXES & TABS */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
         .info-box.alert { background: #ffebee; color: #c62828; border-left-color: #c62828; }
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
-        /* TABS */
         .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; }
+        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; /* hidden by default */ }
         .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; }
         .tab-content { display: none; }
         
         /* CARDS & GRIDS */
         .card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
         .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
-        
         .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        
-        /* UTILS */
         .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
 
-        /* MEDIA QUERIES */
         @media (min-width: 768px) {
             body { padding: 20px; }
             .container { border-radius: 20px; }
@@ -99,19 +91,16 @@
         <div class="login-wrapper" id="loginScreen">
             <div class="login-card">
                 <h2>System Login</h2>
-                
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
                     <strong>Default Passwords:</strong><br>
                     Admin: <code>admin123</code><br>
                     Class Teacher: <code>class123</code><br>
                     Subject Teacher: <code>subject123</code>
                 </div>
-
                 <div class="form-group">
                     <label>Your Name</label>
                     <input type="text" id="loginUserName" placeholder="e.g. John Doe">
                 </div>
-
                 <div class="form-group">
                     <label>Select Role</label>
                     <select id="loginRoleSelect">
@@ -121,29 +110,106 @@
                         <option value="subject_teacher">📝 Subject Teacher</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter password">
                 </div>
-
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
             </div>
         </div>
 
-        <!-- Main App (Hidden initially until logged in) -->
+        <!-- MAIN APP CONTEXT -->
         <div class="content app-main" id="appContent" style="display: none;">
             
             <div class="nav-tabs" id="navTabs">
-                <button class="nav-tab active" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
+                <button class="nav-tab" id="tab-btn-dashboard" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="nav-tab" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
                 <button class="nav-tab" id="tab-btn-students" onclick="showTab('students')">👥 Students</button>
                 <button class="nav-tab" id="tab-btn-subjects" onclick="showTab('subjects')">📚 Subjects</button>
-                <!-- Teachers Tab Button -->
                 <button class="nav-tab" id="tab-btn-teachers" onclick="showTab('teachers')">👨‍🏫 Teachers</button>
+                <button class="nav-tab" id="tab-btn-leave" onclick="showTab('leave')">📩 Leave Request</button>
             </div>
 
-            <!-- Attendance Tab -->
-            <div class="tab-content" id="attendance" style="display: block;">
+            <!-- DASHBOARD TAB (Admin Only) -->
+            <div class="tab-content" id="dashboard">
+                <div class="card">
+                    <h3>System Overview</h3>
+                    <div class="grid-3">
+                        <div class="info-box" style="text-align:center; background: #e8eaf6; border-left-color: #3f51b5; color: #1a237e;">
+                            <h2 style="font-size: 2em; margin-bottom: 5px;">👨‍🏫</h2>
+                            <p>Manage Staff</p>
+                        </div>
+                        <div class="info-box" style="text-align:center; background: #e0f2f1; border-left-color: #009688; color: #004d40;">
+                            <h2 style="font-size: 2em; margin-bottom: 5px;">👥</h2>
+                            <p>Manage Students</p>
+                        </div>
+                        <div class="info-box" style="text-align:center; background: #fff3e0; border-left-color: #ff9800; color: #e65100;">
+                            <h2 style="font-size: 2em; margin-bottom: 5px;">📋</h2>
+                            <p>Track Attendance</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Pending Leave Requests</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                            <thead>
+                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">Teacher Name</th>
+                                    <th style="padding: 12px; color: #4a148c;">Role</th>
+                                    <th style="padding: 12px; color: #4a148c;">Date</th>
+                                    <th style="padding: 12px; color: #4a148c;">Reason</th>
+                                    <th style="padding: 12px; color: #4a148c;">Status</th>
+                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLeaveRequestsBody">
+                                <tr><td colspan="6" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEAVE REQUEST TAB (Teachers Only) -->
+            <div class="tab-content" id="leave">
+                <div class="card">
+                    <h3>Apply for Leave</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Leave Date</label>
+                            <input type="date" id="leaveDateInput">
+                        </div>
+                        <div class="form-group">
+                            <label>Reason for Leave</label>
+                            <input type="text" id="leaveReasonInput" placeholder="e.g. Medical, Personal Matter">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="submitLeaveRequest()">Submit Request</button>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3>My Leave History</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                            <thead>
+                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">Date</th>
+                                    <th style="padding: 12px; color: #4a148c;">Reason</th>
+                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myLeaveRequestsBody">
+                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATTENDANCE TAB -->
+            <div class="tab-content" id="attendance">
                 <div class="card">
                     <h3>Mark Attendance</h3>
                     <div class="info-box">Select date and class first to load specific subjects from Firebase.</div>
@@ -187,7 +253,7 @@
                 </div>
             </div>
 
-            <!-- Students Tab -->
+            <!-- STUDENTS TAB -->
             <div class="tab-content" id="students">
                 <div class="card">
                     <h3>Add New Student</h3>
@@ -216,8 +282,6 @@
 
                 <div class="card" style="margin-top: 20px;">
                     <h3>📋 Student List & Actions</h3>
-                    <div class="info-box">Addresses and phone numbers are hidden for privacy. Only Grade and Name are shown.</div>
-                    
                     <div class="form-group">
                         <label>Select Grade to View</label>
                         <select id="viewStudentGrade" onchange="loadStudentList()">
@@ -242,7 +306,7 @@
                 </div>
             </div>
 
-            <!-- Subjects Tab -->
+            <!-- SUBJECTS TAB -->
             <div class="tab-content" id="subjects">
                 <div class="card">
                     <h3>📚 Manage Subjects (Firebase Database)</h3>
@@ -262,7 +326,7 @@
                 </div>
             </div>
 
-            <!-- Teachers Tab -->
+            <!-- TEACHERS TAB -->
             <div class="tab-content" id="teachers">
                 <div class="card">
                     <h3>Add New Teacher</h3>
@@ -275,19 +339,16 @@
                             <label>Teacher Name</label>
                             <input type="text" id="teacherName" placeholder="e.g. John Doe">
                         </div>
-                        <!-- UPDATED: Teaching Subject as a Dropdown -->
                         <div class="form-group">
                             <label>Teaching Subject</label>
                             <select id="teacherSubject">
                                 <option value="">Select Subject</option>
-                                <!-- Populated dynamically based on available subjects -->
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Class Teacher Of (Optional)</label>
                             <select id="teacherClass">
                                 <option value="N/A">Not a Class Teacher</option>
-                                <!-- Classes populated dynamically -->
                             </select>
                         </div>
                     </div>
@@ -326,43 +387,34 @@
         const firebaseConfig = {
             databaseURL: "https://smart-attendance-e2b89-default-rtdb.firebaseio.com"
         };
-
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Default Classes (Grade 6 to 11)
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         
-        // --- ROLE PASSWORDS (Hardcoded for demo) ---
         const rolePasswords = {
             "admin": "admin123",
             "class_teacher": "class123",
             "subject_teacher": "subject123"
         };
 
-        // Current User State
-        let currentUser = {
-            name: "",
-            role: ""
-        };
+        let currentUser = { name: "", role: "" };
 
-        // On Page Load
         window.onload = function() {
             loadAllClasses();
             fetchDataFromFirebase();
-            loadTeacherList(); // Initialize Teacher List listener
+            loadTeacherList();
             
-            // Set today's date automatically in the date picker
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
             document.getElementById('attendanceDate').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('leaveDateInput').value = `${yyyy}-${mm}-${dd}`;
         };
 
-        // --- LOGIN & ROLE MANAGEMENT ---
+        // --- LOGIN & ROLE PERMISSIONS ---
         function login() {
             const name = document.getElementById('loginUserName').value.trim();
             const role = document.getElementById('loginRoleSelect').value;
@@ -372,61 +424,175 @@
             if (!role) return alert("Please select a role!");
             if (!password) return alert("Please enter the password!");
 
-            // Validate Password
-            if (password !== rolePasswords[role]) {
-                return alert("Incorrect Password! Please try again.");
-            }
+            if (password !== rolePasswords[role]) return alert("Incorrect Password! Please try again.");
 
-            // Save user info
             currentUser.name = name;
             currentUser.role = role;
 
-            // Update UI Badge
-            let roleDisplay = "";
-            if(role === 'admin') roleDisplay = "Admin";
-            if(role === 'class_teacher') roleDisplay = "Class Teacher";
-            if(role === 'subject_teacher') roleDisplay = "Subject Teacher";
-            
+            let roleDisplay = (role === 'admin') ? "Admin" : (role === 'class_teacher' ? "Class Teacher" : "Subject Teacher");
             document.getElementById('roleBadge').innerText = `${name} (${roleDisplay})`;
             
-            // Switch Screens
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appContent').style.display = 'block';
             document.getElementById('logoutBtn').style.display = 'block';
 
-            // Apply Role Permissions (Hide/Show Tabs)
             applyRolePermissions(role);
         }
 
         function logout() {
-            if(confirm("Are you sure you want to logout?")) {
-                location.reload(); 
-            }
+            if(confirm("Are you sure you want to logout?")) location.reload(); 
         }
 
         function applyRolePermissions(role) {
-            const studentsTabBtn = document.getElementById('tab-btn-students');
-            const subjectsTabBtn = document.getElementById('tab-btn-subjects');
-            const teachersTabBtn = document.getElementById('tab-btn-teachers');
+            const tabs = ['dashboard', 'attendance', 'students', 'subjects', 'teachers', 'leave'];
+            tabs.forEach(tab => document.getElementById(`tab-btn-${tab}`).style.display = 'none');
 
-            if (role === 'subject_teacher') {
-                studentsTabBtn.style.display = 'none';
-                subjectsTabBtn.style.display = 'none';
-                teachersTabBtn.style.display = 'none';
+            if (role === 'admin') {
+                ['dashboard', 'attendance', 'students', 'subjects', 'teachers'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('dashboard');
+                loadAdminLeaveRequests();
             } else if (role === 'class_teacher') {
-                studentsTabBtn.style.display = 'inline-block';
-                subjectsTabBtn.style.display = 'none';
-                teachersTabBtn.style.display = 'none';
-            } else if (role === 'admin') {
-                studentsTabBtn.style.display = 'inline-block';
-                subjectsTabBtn.style.display = 'inline-block';
-                teachersTabBtn.style.display = 'inline-block';
+                ['attendance', 'students', 'leave'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('attendance');
+                loadMyLeaveRequests();
+            } else if (role === 'subject_teacher') {
+                ['attendance', 'leave'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('attendance');
+                loadMyLeaveRequests();
             }
-            
-            showTab('attendance');
         }
 
-        // Populate Class Dropdowns
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            const targetTab = document.getElementById(tabId);
+            const targetBtn = document.getElementById('tab-btn-' + tabId);
+            if (targetTab) targetTab.style.display = 'block';
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+
+        // --- LEAVE REQUEST LOGIC ---
+        function submitLeaveRequest() {
+            const date = document.getElementById('leaveDateInput').value;
+            const reason = document.getElementById('leaveReasonInput').value.trim();
+
+            if (!date || !reason) return alert("Please select a date and enter a reason!");
+
+            database.ref('leaveRequests').push({
+                name: currentUser.name,
+                role: currentUser.role,
+                date: date,
+                reason: reason,
+                status: 'Pending',
+                timestamp: Date.now()
+            }, (error) => {
+                if (error) alert("Error: " + error.message);
+                else {
+                    alert("Leave request submitted successfully!");
+                    document.getElementById('leaveReasonInput').value = '';
+                }
+            });
+        }
+
+        // Teacher's view of their own requests
+        function loadMyLeaveRequests() {
+            database.ref('leaveRequests').on('value', snapshot => {
+                const tbody = document.getElementById('myLeaveRequestsBody');
+                tbody.innerHTML = '';
+                let hasRequests = false;
+
+                const requests = [];
+                snapshot.forEach(child => {
+                    const req = child.val();
+                    if(req.name === currentUser.name) {
+                        requests.push(req);
+                        hasRequests = true;
+                    }
+                });
+
+                if (!hasRequests) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#666;">No leave history found</td></tr>';
+                    return;
+                }
+                
+                requests.sort((a,b) => b.timestamp - a.timestamp); // Newest first
+                
+                requests.forEach(req => {
+                    let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">${req.date}</td>
+                            <td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px; text-align:right;">
+                                <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        // Admin's view of all leave requests
+        function loadAdminLeaveRequests() {
+            database.ref('leaveRequests').on('value', snapshot => {
+                const tbody = document.getElementById('adminLeaveRequestsBody');
+                tbody.innerHTML = '';
+
+                if (!snapshot.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
+                    return;
+                }
+
+                const requests = [];
+                snapshot.forEach(child => {
+                    requests.push({ id: child.key, ...child.val() });
+                });
+                requests.sort((a,b) => b.timestamp - a.timestamp);
+                
+                requests.forEach(req => {
+                    let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
+                    let roleStr = req.role === 'class_teacher' ? 'Class Tr.' : 'Subject Tr.';
+                    
+                    let actionBtns = '';
+                    if (req.status === 'Pending') {
+                        actionBtns = `
+                            <button onclick="updateLeaveStatus('${req.id}', 'Approved')" style="background: #2e7d32; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 0.8em;">Approve</button>
+                            <button onclick="updateLeaveStatus('${req.id}', 'Rejected')" style="background: #c62828; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Reject</button>
+                        `;
+                    } else {
+                        actionBtns = `<span style="color: #888; font-size:0.85em;">Resolved</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 500;">${req.name}</td>
+                            <td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
+                            <td style="padding: 12px;">${req.date}</td>
+                            <td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px;">
+                                <span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight:bold;">${req.status}</span>
+                            </td>
+                            <td style="padding: 12px; text-align: right;">${actionBtns}</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function updateLeaveStatus(id, status) {
+            if(confirm(`Are you sure you want to mark this request as ${status}?`)) {
+                database.ref('leaveRequests/' + id).update({ status: status });
+            }
+        }
+
+
+        // --- UTILITY & DATA FUNCTIONS (Remaining existing code) ---
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'subjectClass', 'viewStudentGrade'];
             classDropdownIds.forEach(id => {
@@ -442,7 +608,6 @@
                 }
             });
 
-            // Specific handling for Teacher Class dropdown to preserve "N/A"
             const teacherClassEl = document.getElementById('teacherClass');
             if (teacherClassEl) {
                 teacherClassEl.innerHTML = '<option value="N/A">Not a Class Teacher</option>';
@@ -455,24 +620,14 @@
             }
         }
 
-        // Fetch Data from Firebase (Realtime Sync)
         function fetchDataFromFirebase() {
             database.ref('schoolData').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
                     schoolData = data;
                 } else {
-                    const juniorSubjects = [
-                        "Mathematics", "Science", "History", "English", "Sinhala Language", 
-                        "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"
-                    ];
-
-                    const seniorSubjects = [
-                        "Mathematics", "Science", "History", "English", "Sinhala Language", 
-                        "Buddhism", "ICT", "Commerce", "Civics", "Geography", 
-                        "Health & PE", "Art", "Dancing", "Music"
-                    ];
-
+                    const juniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"];
+                    const seniorSubjects = ["Mathematics", "Science", "History", "English", "Sinhala Language", "Buddhism", "ICT", "Commerce", "Civics", "Geography", "Health & PE", "Art", "Dancing", "Music"];
                     schoolData = {
                         "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects],
                         "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects]
@@ -480,15 +635,13 @@
                     database.ref('schoolData').set(schoolData);
                 }
                 filterSubjects();
-                loadUniqueSubjects(); // Load unique subjects into Teacher Tab Dropdown
+                loadUniqueSubjects(); 
             });
         }
 
-        // Filter Subjects based on Selected Class
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
-            
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
@@ -502,17 +655,12 @@
             }
         }
 
-        // Collect all unique subjects and populate the Teacher "Teaching Subject" dropdown
         function loadUniqueSubjects() {
             const subjectSet = new Set();
-            for (const grade in schoolData) {
-                schoolData[grade].forEach(sub => subjectSet.add(sub));
-            }
-            
+            for (const grade in schoolData) schoolData[grade].forEach(sub => subjectSet.add(sub));
             const teacherSubjectSelect = document.getElementById('teacherSubject');
             if (teacherSubjectSelect) {
                 teacherSubjectSelect.innerHTML = '<option value="">Select Subject</option>';
-                // Sort subjects alphabetically and create options
                 Array.from(subjectSet).sort().forEach(subject => {
                     const option = document.createElement('option');
                     option.value = subject;
@@ -522,48 +670,35 @@
             }
         }
 
-        // Add New Subject to Firebase
+        // Submits, loading grids etc (Subject, Student, Attendance, Teacher) remains the same
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
-
             if (!className) return alert("Please select a class!");
             if (!subjectName) return alert("Please enter the subject name!");
 
             if (!schoolData[className]) schoolData[className] = [];
-
             if (!schoolData[className].includes(subjectName)) {
                 schoolData[className].push(subjectName);
                 database.ref('schoolData').set(schoolData, (error) => {
-                    if (error) {
-                        alert("Error saving data: " + error.message);
-                    } else {
-                        alert("Subject successfully added to Firebase!");
-                        document.getElementById('newSubjectName').value = '';
-                    }
+                    if (error) alert("Error saving data: " + error.message);
+                    else { alert("Subject successfully added!"); document.getElementById('newSubjectName').value = ''; }
                 });
-            } else {
-                alert("This subject already exists in the selected class.");
-            }
+            } else alert("This subject already exists in the selected class.");
         }
 
-        // Add New Student to Firebase 
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const name = document.getElementById('studentName').value.trim();
             const address = document.getElementById('studentAddress').value.trim();
             const phone = document.getElementById('studentPhone').value.trim();
-
             if (!grade || !name) return alert("Please select a class and enter the student's name!");
 
             database.ref('students/' + grade).push({
-                name: name,
-                address: address || "Not Provided",
-                phone: phone || "Not Provided"
+                name: name, address: address || "Not Provided", phone: phone || "Not Provided"
             }, (error) => {
-                if (error) {
-                    alert("Error: " + error.message);
-                } else {
+                if (error) alert("Error: " + error.message);
+                else {
                     alert("Student successfully added!");
                     document.getElementById('studentName').value = ''; 
                     document.getElementById('studentAddress').value = '';
@@ -572,91 +707,80 @@
             });
         }
 
-        // --- TEACHERS LOGIC ---
+        function loadStudentList() {
+            const grade = document.getElementById('viewStudentGrade').value;
+            const tbody = document.getElementById('studentListTableBody');
+            if (!grade) { tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Please select a class</td></tr>'; return; }
+            tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
+            
+            database.ref('students/' + grade).on('value', (snapshot) => {
+                tbody.innerHTML = '';
+                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
+                snapshot.forEach((childSnapshot) => {
+                    const student = childSnapshot.val();
+                    const studentId = childSnapshot.key;
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 500;">${student.name}</td>
+                            <td style="padding: 12px;"><span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${grade}</span></td>
+                            <td style="padding: 12px; text-align: right;"><button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+        function removeStudent(grade, studentId) {
+            if (confirm("Remove this student?")) database.ref(`students/${grade}/${studentId}`).remove();
+        }
+
         function addNewTeacher() {
             const tId = document.getElementById('teacherId').value.trim();
             const tName = document.getElementById('teacherName').value.trim();
             const tSubject = document.getElementById('teacherSubject').value;
             const tClass = document.getElementById('teacherClass').value;
 
-            if (!tId || !tName || !tSubject) {
-                return alert("Please enter Teacher ID, Name, and Teaching Subject!");
-            }
+            if (!tId || !tName || !tSubject) return alert("Please enter Teacher ID, Name, and Teaching Subject!");
 
-            database.ref('teachers').push({
-                teacherId: tId,
-                name: tName,
-                subject: tSubject,
-                classTeacherOf: tClass
-            }, (error) => {
-                if (error) {
-                    alert("Error saving teacher: " + error.message);
-                } else {
+            database.ref('teachers').push({ teacherId: tId, name: tName, subject: tSubject, classTeacherOf: tClass }, (error) => {
+                if (error) alert("Error saving teacher: " + error.message);
+                else {
                     alert("Teacher successfully added!");
-                    document.getElementById('teacherId').value = '';
-                    document.getElementById('teacherName').value = '';
-                    document.getElementById('teacherSubject').value = '';
-                    document.getElementById('teacherClass').value = 'N/A';
+                    document.getElementById('teacherId').value = ''; document.getElementById('teacherName').value = '';
+                    document.getElementById('teacherSubject').value = ''; document.getElementById('teacherClass').value = 'N/A';
                 }
             });
         }
-
         function loadTeacherList() {
             const tbody = document.getElementById('teacherListTableBody');
             database.ref('teachers').on('value', (snapshot) => {
                 tbody.innerHTML = '';
-                if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: #c62828;">No teachers found</td></tr>';
-                    return;
-                }
-                
+                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center;">No teachers found</td></tr>'; return; }
                 snapshot.forEach((childSnapshot) => {
                     const teacher = childSnapshot.val();
                     const key = childSnapshot.key;
-                    
                     const badgeColor = teacher.classTeacherOf !== "N/A" ? "#e1bee7" : "#eeeeee";
                     const textColor = teacher.classTeacherOf !== "N/A" ? "#4a148c" : "#777777";
 
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = "1px solid #eee";
-                    tr.innerHTML = `
-                        <td style="padding: 12px; font-weight: 500;">${teacher.teacherId}</td>
-                        <td style="padding: 12px;">${teacher.name}</td>
-                        <td style="padding: 12px;">${teacher.subject}</td>
-                        <td style="padding: 12px;">
-                            <span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
-                                ${teacher.classTeacherOf}
-                            </span>
-                        </td>
-                        <td style="padding: 12px; text-align: right;">
-                            <button onclick="removeTeacher('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.3s;">
-                                Remove
-                            </button>
-                        </td>
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">${teacher.teacherId}</td><td style="padding: 12px;">${teacher.name}</td><td style="padding: 12px;">${teacher.subject}</td>
+                            <td style="padding: 12px;"><span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${teacher.classTeacherOf}</span></td>
+                            <td style="padding: 12px; text-align: right;"><button onclick="removeTeacher('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
+                        </tr>
                     `;
-                    tbody.appendChild(tr);
                 });
             });
         }
+        function removeTeacher(key) { if (confirm("Remove this teacher?")) database.ref(`teachers/${key}`).remove(); }
 
-        function removeTeacher(key) {
-            if (confirm("Are you sure you want to remove this teacher?")) {
-                database.ref(`teachers/${key}`).remove()
-                    .catch((error) => alert("Error removing teacher: " + error.message));
-            }
-        }
-        // --- END TEACHERS LOGIC ---
-
-        // Load Student List for Marking Attendance
+        // Attendance
         function loadStudentsForAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
             const subject = document.getElementById('selectSubject').value;
             const period = document.getElementById('selectPeriod').value;
 
-            if (!dateStr || !grade || !subject || !period) {
-                return alert("Please select Date, Class, Subject, and Period!");
-            }
+            if (!dateStr || !grade || !subject || !period) return alert("Select Date, Class, Subject, and Period!");
 
             const listContainer = document.getElementById('attendanceList');
             const saveBtn = document.getElementById('saveAttendanceBtn');
@@ -665,11 +789,7 @@
 
             database.ref('students/' + grade).once('value', (snapshot) => {
                 listContainer.innerHTML = ''; 
-                
-                if (!snapshot.exists()) {
-                    listContainer.innerHTML = '<div class="info-box alert">No students found for this class. Please add students first.</div>';
-                    return;
-                }
+                if (!snapshot.exists()) { listContainer.innerHTML = '<div class="info-box alert">No students found.</div>'; return; }
 
                 let html = `
                     <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
@@ -685,7 +805,6 @@
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
                     const studentId = childSnapshot.key;
-                    
                     html += `
                     <div class="student-row">
                         <span>${student.name}</span>
@@ -695,51 +814,38 @@
                         </label>
                     </div>`;
                 });
-                
                 listContainer.innerHTML = html;
                 saveBtn.style.display = 'block';
 
                 document.querySelectorAll('.attendance-check').forEach(chk => {
                     chk.addEventListener('change', function() {
                         const labelSpan = this.nextElementSibling;
-                        if(this.checked) {
-                            labelSpan.textContent = 'Present';
-                            labelSpan.style.color = '#2e7d32';
-                        } else {
-                            labelSpan.textContent = 'Absent';
-                            labelSpan.style.color = '#c62828';
-                        }
+                        if(this.checked) { labelSpan.textContent = 'Present'; labelSpan.style.color = '#2e7d32'; } 
+                        else { labelSpan.textContent = 'Absent'; labelSpan.style.color = '#c62828'; }
                     });
                 });
             });
         }
 
-        // Save Attendance to Firebase
         function saveAttendance() {
             const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
             const subject = document.getElementById('selectSubject').value;
             const period = document.getElementById('selectPeriod').value;
-            
             if(!dateStr) return alert("No date selected!");
 
-            const checkboxes = document.querySelectorAll('.attendance-check');
             let attendanceData = {};
-            
-            checkboxes.forEach(chk => {
-                const studentId = chk.getAttribute('data-id');
-                const studentName = chk.getAttribute('data-name');
-                attendanceData[studentId] = {
-                    name: studentName,
+            document.querySelectorAll('.attendance-check').forEach(chk => {
+                attendanceData[chk.getAttribute('data-id')] = {
+                    name: chk.getAttribute('data-name'),
                     status: chk.checked ? "Present" : "Absent",
-                    markedBy: currentUser.name // Store who marked the attendance
+                    markedBy: currentUser.name 
                 };
             });
 
             database.ref(`attendance/${dateStr}/${grade}/${subject}/${period}`).set(attendanceData, (error) => {
-                if(error) {
-                    alert("Error saving attendance: " + error.message);
-                } else {
+                if(error) alert("Error saving attendance: " + error.message);
+                else {
                     alert("Attendance successfully saved!");
                     document.getElementById('attendanceList').innerHTML = '';
                     document.getElementById('saveAttendanceBtn').style.display = 'none';
@@ -747,71 +853,6 @@
                     document.getElementById('selectPeriod').value = '';
                 }
             });
-        }
-
-        // Load Student List in Students Tab
-        function loadStudentList() {
-            const grade = document.getElementById('viewStudentGrade').value;
-            const tbody = document.getElementById('studentListTableBody');
-
-            if (!grade) {
-                tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
-
-            database.ref('students/' + grade).on('value', (snapshot) => {
-                tbody.innerHTML = '';
-                
-                if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #c62828;">No students found</td></tr>';
-                    return;
-                }
-
-                snapshot.forEach((childSnapshot) => {
-                    const student = childSnapshot.val();
-                    const studentId = childSnapshot.key;
-
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = "1px solid #eee";
-                    
-                    tr.innerHTML = `
-                        <td style="padding: 12px; font-weight: 500;">${student.name}</td>
-                        <td style="padding: 12px;">
-                            <span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
-                                ${grade}
-                            </span>
-                        </td>
-                        <td style="padding: 12px; text-align: right;">
-                            <button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.3s;">
-                                Remove
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            });
-        }
-
-        // Remove Student from Firebase
-        function removeStudent(grade, studentId) {
-            if (confirm("Are you sure you want to remove this student from the list?")) {
-                database.ref(`students/${grade}/${studentId}`).remove()
-                    .catch((error) => alert("Error removing student: " + error.message));
-            }
-        }
-
-        // Tab Switching Logic
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-            
-            const targetTab = document.getElementById(tabId);
-            const targetBtn = document.getElementById('tab-btn-' + tabId);
-            
-            if (targetTab) targetTab.style.display = 'block';
-            if (targetBtn) targetBtn.classList.add('active');
         }
     </script>
 </body>
