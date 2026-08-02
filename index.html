@@ -92,7 +92,6 @@
             <h1>📚 Smart Attendance Tracker</h1>
             <p>Connected with Firebase Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
-            <!-- Logout Button (Hidden initially) -->
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
 
@@ -139,6 +138,8 @@
                 <button class="nav-tab active" id="tab-btn-attendance" onclick="showTab('attendance')">📋 Mark Attendance</button>
                 <button class="nav-tab" id="tab-btn-students" onclick="showTab('students')">👥 Students</button>
                 <button class="nav-tab" id="tab-btn-subjects" onclick="showTab('subjects')">📚 Subjects</button>
+                <!-- NEW: Teachers Tab Button -->
+                <button class="nav-tab" id="tab-btn-teachers" onclick="showTab('teachers')">👨‍🏫 Teachers</button>
             </div>
 
             <!-- Attendance Tab -->
@@ -188,7 +189,6 @@
 
             <!-- Students Tab -->
             <div class="tab-content" id="students">
-                <!-- Add Student Card -->
                 <div class="card">
                     <h3>Add New Student</h3>
                     <div class="grid-2">
@@ -214,7 +214,6 @@
                     <button class="btn btn-primary btn-full" onclick="addNewStudent()">Add Student</button>
                 </div>
 
-                <!-- Student List & Actions Card -->
                 <div class="card" style="margin-top: 20px;">
                     <h3>📋 Student List & Actions</h3>
                     <div class="info-box">Addresses and phone numbers are hidden for privacy. Only Grade and Name are shown.</div>
@@ -263,6 +262,55 @@
                 </div>
             </div>
 
+            <!-- NEW: Teachers Tab -->
+            <div class="tab-content" id="teachers">
+                <div class="card">
+                    <h3>Add New Teacher</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Teacher ID</label>
+                            <input type="text" id="teacherId" placeholder="e.g. T001">
+                        </div>
+                        <div class="form-group">
+                            <label>Teacher Name</label>
+                            <input type="text" id="teacherName" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Subject Taught</label>
+                            <input type="text" id="teacherSubject" placeholder="e.g. Science">
+                        </div>
+                        <div class="form-group">
+                            <label>Class Teacher Of (Optional)</label>
+                            <select id="teacherClass">
+                                <option value="N/A">Not a Class Teacher</option>
+                                <!-- Classes populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="addNewTeacher()">Add Teacher</button>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3>📋 Teacher List & Actions</h3>
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                            <thead>
+                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
+                                    <th style="padding: 12px; color: #4a148c;">ID</th>
+                                    <th style="padding: 12px; color: #4a148c;">Name</th>
+                                    <th style="padding: 12px; color: #4a148c;">Subject</th>
+                                    <th style="padding: 12px; color: #4a148c;">Class Teacher</th>
+                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherListTableBody">
+                                <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Loading teachers...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div class="footer-credit">
                 Developer - Kelum Koonara | Smart soft | 0714469232
             </div>
@@ -300,6 +348,7 @@
         window.onload = function() {
             loadAllClasses();
             fetchDataFromFirebase();
+            loadTeacherList(); // Initialize Teacher List listener
             
             // Set today's date automatically in the date picker
             const today = new Date();
@@ -347,33 +396,31 @@
 
         function logout() {
             if(confirm("Are you sure you want to logout?")) {
-                location.reload(); // Reloads the page to reset state
+                location.reload(); 
             }
         }
 
         function applyRolePermissions(role) {
             const studentsTabBtn = document.getElementById('tab-btn-students');
             const subjectsTabBtn = document.getElementById('tab-btn-subjects');
+            const teachersTabBtn = document.getElementById('tab-btn-teachers');
 
             if (role === 'subject_teacher') {
-                // Subject Teacher: Only Attendance
                 studentsTabBtn.style.display = 'none';
                 subjectsTabBtn.style.display = 'none';
+                teachersTabBtn.style.display = 'none';
             } else if (role === 'class_teacher') {
-                // Class Teacher: Attendance + Students
                 studentsTabBtn.style.display = 'inline-block';
                 subjectsTabBtn.style.display = 'none';
+                teachersTabBtn.style.display = 'none';
             } else if (role === 'admin') {
-                // Admin: All Tabs
                 studentsTabBtn.style.display = 'inline-block';
                 subjectsTabBtn.style.display = 'inline-block';
+                teachersTabBtn.style.display = 'inline-block';
             }
             
-            // Default to Attendance Tab upon login
             showTab('attendance');
         }
-
-        // --- END LOGIN LOGIC ---
 
         // Populate Class Dropdowns
         function loadAllClasses() {
@@ -390,6 +437,18 @@
                     });
                 }
             });
+
+            // Specific handling for Teacher Class dropdown to preserve "N/A"
+            const teacherClassEl = document.getElementById('teacherClass');
+            if (teacherClassEl) {
+                teacherClassEl.innerHTML = '<option value="N/A">Not a Class Teacher</option>';
+                defaultClasses.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    teacherClassEl.appendChild(option);
+                });
+            }
         }
 
         // Fetch Data from Firebase (Realtime Sync)
@@ -399,7 +458,6 @@
                 if (data) {
                     schoolData = data;
                 } else {
-                    // English Default Subjects
                     const juniorSubjects = [
                         "Mathematics", "Science", "History", "English", "Sinhala Language", 
                         "Buddhism", "Civics", "Geography", "Health & PE", "Practical Arts"
@@ -427,7 +485,6 @@
             const subjectSelect = document.getElementById('selectSubject');
             
             if (!subjectSelect) return;
-
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
             if (selectedClass && schoolData[selectedClass]) {
@@ -440,7 +497,7 @@
             }
         }
 
-        // Add New Subject to Firebase (Admin Only)
+        // Add New Subject to Firebase
         function addNewSubject() {
             const className = document.getElementById('subjectClass').value;
             const subjectName = document.getElementById('newSubjectName').value.trim();
@@ -465,16 +522,14 @@
             }
         }
 
-        // Add New Student to Firebase (Admin/Class Teacher)
+        // Add New Student to Firebase 
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const name = document.getElementById('studentName').value.trim();
             const address = document.getElementById('studentAddress').value.trim();
             const phone = document.getElementById('studentPhone').value.trim();
 
-            if (!grade || !name) {
-                return alert("Please select a class and enter the student's name!");
-            }
+            if (!grade || !name) return alert("Please select a class and enter the student's name!");
 
             database.ref('students/' + grade).push({
                 name: name,
@@ -488,13 +543,84 @@
                     document.getElementById('studentName').value = ''; 
                     document.getElementById('studentAddress').value = '';
                     document.getElementById('studentPhone').value = '';
-                    
-                    if(document.getElementById('viewStudentGrade').value === grade) {
-                        loadStudentList();
-                    }
                 }
             });
         }
+
+        // --- TEACHERS LOGIC ---
+        function addNewTeacher() {
+            const tId = document.getElementById('teacherId').value.trim();
+            const tName = document.getElementById('teacherName').value.trim();
+            const tSubject = document.getElementById('teacherSubject').value.trim();
+            const tClass = document.getElementById('teacherClass').value;
+
+            if (!tId || !tName) {
+                return alert("Please enter Teacher ID and Name!");
+            }
+
+            database.ref('teachers').push({
+                teacherId: tId,
+                name: tName,
+                subject: tSubject || "N/A",
+                classTeacherOf: tClass
+            }, (error) => {
+                if (error) {
+                    alert("Error saving teacher: " + error.message);
+                } else {
+                    alert("Teacher successfully added!");
+                    document.getElementById('teacherId').value = '';
+                    document.getElementById('teacherName').value = '';
+                    document.getElementById('teacherSubject').value = '';
+                    document.getElementById('teacherClass').value = 'N/A';
+                }
+            });
+        }
+
+        function loadTeacherList() {
+            const tbody = document.getElementById('teacherListTableBody');
+            database.ref('teachers').on('value', (snapshot) => {
+                tbody.innerHTML = '';
+                if (!snapshot.exists()) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center; color: #c62828;">No teachers found</td></tr>';
+                    return;
+                }
+                
+                snapshot.forEach((childSnapshot) => {
+                    const teacher = childSnapshot.val();
+                    const key = childSnapshot.key;
+                    
+                    const badgeColor = teacher.classTeacherOf !== "N/A" ? "#e1bee7" : "#eeeeee";
+                    const textColor = teacher.classTeacherOf !== "N/A" ? "#4a148c" : "#777777";
+
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = "1px solid #eee";
+                    tr.innerHTML = `
+                        <td style="padding: 12px; font-weight: 500;">${teacher.teacherId}</td>
+                        <td style="padding: 12px;">${teacher.name}</td>
+                        <td style="padding: 12px;">${teacher.subject}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
+                                ${teacher.classTeacherOf}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <button onclick="removeTeacher('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: 0.3s;">
+                                Remove
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        function removeTeacher(key) {
+            if (confirm("Are you sure you want to remove this teacher?")) {
+                database.ref(`teachers/${key}`).remove()
+                    .catch((error) => alert("Error removing teacher: " + error.message));
+            }
+        }
+        // --- END TEACHERS LOGIC ---
 
         // Load Student List for Marking Attendance
         function loadStudentsForAttendance() {
@@ -520,7 +646,6 @@
                     return;
                 }
 
-                // Enhanced Header showing Date, Grade, Subject, and Period
                 let html = `
                     <div style="background: #f3e5f5; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #8e24aa;">
                         <h4 style="color: #4a148c; margin-bottom: 8px;">Date: ${dateStr}</h4>
@@ -648,12 +773,7 @@
         function removeStudent(grade, studentId) {
             if (confirm("Are you sure you want to remove this student from the list?")) {
                 database.ref(`students/${grade}/${studentId}`).remove()
-                    .then(() => {
-                        // Realtime update handles UI change automatically
-                    })
-                    .catch((error) => {
-                        alert("Error removing student: " + error.message);
-                    });
+                    .catch((error) => alert("Error removing student: " + error.message));
             }
         }
 
