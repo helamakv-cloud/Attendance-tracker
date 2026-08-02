@@ -64,7 +64,7 @@
         .card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
         .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
         
-        .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .grid-2, .grid-3, .grid-4 { display: grid; grid-template-columns: 1fr; gap: 10px; }
         
         /* UTILS */
         .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
@@ -77,6 +77,7 @@
             .header h1 { font-size: 2em; margin-top: 0; }
             .grid-2 { grid-template-columns: 1fr 1fr; gap: 20px; }
             .grid-3 { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+            .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; }
         }
     </style>
 </head>
@@ -102,8 +103,13 @@
             <div class="tab-content" id="attendance" style="display: block;">
                 <div class="card">
                     <h3>Mark Attendance</h3>
-                    <div class="info-box">Select class first to load its specific subjects from Firebase.</div>
-                    <div class="grid-3">
+                    <div class="info-box">Select date and class first to load specific subjects from Firebase.</div>
+                    <div class="grid-2">
+                        <!-- Date Picker Added Here -->
+                        <div class="form-group">
+                            <label>දිනය (Date)</label>
+                            <input type="date" id="attendanceDate">
+                        </div>
                         <div class="form-group">
                             <label>Select Class</label>
                             <select id="selectClass" onchange="filterSubjects()">
@@ -141,7 +147,7 @@
 
             <!-- Students Tab -->
             <div class="tab-content" id="students">
-                <!-- Add Student Card -->
+                <!-- Add Student Card (Updated with Address & Phone) -->
                 <div class="card">
                     <h3>Add New Student</h3>
                     <div class="grid-2">
@@ -152,8 +158,16 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Student Name</label>
+                            <label>Student Name (සිසුවාගේ නම)</label>
                             <input type="text" id="studentName" placeholder="Enter name">
+                        </div>
+                        <div class="form-group">
+                            <label>Address (ලිපිනය)</label>
+                            <input type="text" id="studentAddress" placeholder="Enter address">
+                        </div>
+                        <div class="form-group">
+                            <label>Guardian Phone (භාරකරුගේ දුරකථන අංකය)</label>
+                            <input type="tel" id="studentPhone" placeholder="Enter phone number">
                         </div>
                     </div>
                     <button class="btn btn-primary btn-full" onclick="addNewStudent()">සිසුවා ඇතුළත් කරන්න (Add Student)</button>
@@ -228,10 +242,17 @@
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
 
-        // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම
+        // පිටුව ලෝඩ් වූ වහාම Firebase දත්ත ලබාගැනීම සහ දිනය සැකසීම
         window.onload = function() {
             loadAllClasses();
             fetchDataFromFirebase();
+            
+            // Set today's date automatically in the date picker
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('attendanceDate').value = `${yyyy}-${mm}-${dd}`;
         };
 
         // පන්ති ඩ්‍රොප්ඩවුන් පිරවීම (viewStudentGrade ඇතුළත්ව)
@@ -260,42 +281,24 @@
                 } else {
                     // ශ්‍රේණි 6-9 සහ 10-11 සඳහා වෙනම නිවැරදි විෂය ලැයිස්තු සැකසීම
                     const juniorSubjects = [
-                        "ගණිතය (Mathematics)", 
-                        "විද්‍යාව (Science)", 
-                        "ඉතිහාසය (History)", 
-                        "ඉංග්‍රීසි (English)", 
-                        "සිංහල (Sinhala)", 
-                        "බුද්ධ ධර්මය (Buddhism)", 
-                        "පුරවැසි අධ්‍යාපනය (Civics)", 
-                        "භූගෝල විද්‍යාව (Geography)", 
-                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", 
-                        "ප්‍රායෝගික කලා (Practical Arts)"
+                        "ගණිතය (Mathematics)", "විද්‍යාව (Science)", "ඉතිහාසය (History)", 
+                        "ඉංග්‍රීසි (English)", "සිංහල (Sinhala)", "බුද්ධ ධර්මය (Buddhism)", 
+                        "පුරවැසි අධ්‍යාපනය (Civics)", "භූගෝල විද්‍යාව (Geography)", 
+                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", "ප්‍රායෝගික කලා (Practical Arts)"
                     ];
 
                     const seniorSubjects = [
-                        "ගණිතය (Mathematics)", 
-                        "විද්‍යාව (Science)", 
-                        "ඉතිහාසය (History)", 
-                        "ඉංග්‍රීසි (English)", 
-                        "සිංහල (Sinhala)", 
-                        "බුද්ධ ධර්මය (Buddhism)", 
-                        "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)", 
-                        "වාණිජ්‍යය හා ගිණුම්කරණය (Commerce)", 
-                        "පුරවැසි අධ්‍යාපනය (Civics)", 
-                        "භූගෝල විද්‍යාව (Geography)", 
-                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)",
-                        "චිත්‍ර කලාව (Art)",
-                        "නැටුම් (Dancing)",
-                        "සංගීතය (Music)"
+                        "ගණිතය (Mathematics)", "විද්‍යාව (Science)", "ඉතිහාසය (History)", 
+                        "ඉංග්‍රීසි (English)", "සිංහල (Sinhala)", "බුද්ධ ධර්මය (Buddhism)", 
+                        "තොරතුරු හා සන්නිවේදන තාක්ෂණය (ICT)", "වාණිජ්‍යය හා ගිණුම්කරණය (Commerce)", 
+                        "පුරවැසි අධ්‍යාපනය (Civics)", "භූගෝල විද්‍යාව (Geography)", 
+                        "සෞඛ්‍ය හා ශාරීරික අධ්‍යාපනය (Health & PE)", "චිත්‍ර කලාව (Art)",
+                        "නැටුම් (Dancing)", "සංගීතය (Music)"
                     ];
 
                     schoolData = {
-                        "Grade 6": [...juniorSubjects],
-                        "Grade 7": [...juniorSubjects],
-                        "Grade 8": [...juniorSubjects],
-                        "Grade 9": [...juniorSubjects],
-                        "Grade 10": [...seniorSubjects],
-                        "Grade 11": [...seniorSubjects]
+                        "Grade 6": [...juniorSubjects], "Grade 7": [...juniorSubjects], "Grade 8": [...juniorSubjects],
+                        "Grade 9": [...juniorSubjects], "Grade 10": [...seniorSubjects], "Grade 11": [...seniorSubjects]
                     };
                     database.ref('schoolData').set(schoolData);
                 }
@@ -347,10 +350,12 @@
             }
         }
 
-        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම
+        // නව සිසුවෙකු Firebase වෙත එකතු කිරීම (ලිපිනය සහ දුරකථන අංකය ඇතුළත්ව)
         function addNewStudent() {
             const grade = document.getElementById('studentGrade').value;
             const name = document.getElementById('studentName').value.trim();
+            const address = document.getElementById('studentAddress').value.trim();
+            const phone = document.getElementById('studentPhone').value.trim();
 
             if (!grade || !name) {
                 return alert("කරුණාකර පන්තිය සහ සිසුවාගේ නම ඇතුළත් කරන්න!");
@@ -358,13 +363,18 @@
 
             // 'students/Grade X/' යටතේ සිසුවා සේව් කිරීම
             database.ref('students/' + grade).push({
-                name: name
+                name: name,
+                address: address || "සපයා නැත", // If empty, save default text
+                phone: phone || "සපයා නැත"
             }, (error) => {
                 if (error) {
                     alert("දෝෂයක්: " + error.message);
                 } else {
                     alert("සිසුවා සාර්ථකව ඇතුළත් කරන ලදී!");
-                    document.getElementById('studentName').value = ''; // Clear input
+                    // Clear inputs
+                    document.getElementById('studentName').value = ''; 
+                    document.getElementById('studentAddress').value = '';
+                    document.getElementById('studentPhone').value = '';
                     
                     // Update list if the same grade is selected in the view
                     if(document.getElementById('viewStudentGrade').value === grade) {
@@ -374,14 +384,15 @@
             });
         }
 
-        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම
+        // පැමිණීම ලකුණු කිරීම සඳහා සිසුන් ලැයිස්තුව ලෝඩ් කිරීම (තේරූ දිනය සමඟ)
         function loadStudentsForAttendance() {
+            const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
             const subject = document.getElementById('selectSubject').value;
             const period = document.getElementById('selectPeriod').value;
 
-            if (!grade || !subject || !period) {
-                return alert("කරුණාකර පන්තිය, විෂය සහ කාලපරිච්ඡේදය තෝරන්න!");
+            if (!dateStr || !grade || !subject || !period) {
+                return alert("කරුණාකර දිනය, පන්තිය, විෂය සහ කාලපරිච්ඡේදය තෝරන්න!");
             }
 
             const listContainer = document.getElementById('attendanceList');
@@ -397,7 +408,9 @@
                     return;
                 }
 
-                let html = `<h4>Date: ${new Date().toLocaleDateString()}</h4>`;
+                // Show selected date
+                let html = `<h4 style="color: #6a1b9a; margin-bottom: 10px;">දිනය (Date): ${dateStr}</h4>`;
+                
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
                     const studentId = childSnapshot.key;
@@ -431,13 +444,15 @@
             });
         }
 
-        // පැමිණීම Firebase වෙත සුරැකීම
+        // පැමිණීම Firebase වෙත සුරැකීම (තේරූ දිනය භාවිතා කරමින්)
         function saveAttendance() {
+            const dateStr = document.getElementById('attendanceDate').value;
             const grade = document.getElementById('selectClass').value;
             const subject = document.getElementById('selectSubject').value;
             const period = document.getElementById('selectPeriod').value;
-            const dateStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
             
+            if(!dateStr) return alert("දිනයක් තෝරා නොමැත!");
+
             const checkboxes = document.querySelectorAll('.attendance-check');
             let attendanceData = {};
             
@@ -465,7 +480,7 @@
             });
         }
 
-        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම (Load Student List in Table)
+        // සිසුන්ගේ ලැයිස්තුව පෙන්වීම (Load Student List in Table - ලිපින සහ දුරකථන අංක නොපෙන්වයි)
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
@@ -517,7 +532,6 @@
                 database.ref(`students/${grade}/${studentId}`).remove()
                     .then(() => {
                         // Realtime listener in loadStudentList will automatically update the UI
-                        // alert("සිසුවා සාර්ථකව ඉවත් කරන ලදී.");
                     })
                     .catch((error) => {
                         alert("ඉවත් කිරීමේ දෝෂයක්: " + error.message);
