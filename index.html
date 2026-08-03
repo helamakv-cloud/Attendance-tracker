@@ -175,13 +175,14 @@
                                     <th style="padding: 12px; color: #4a148c;">Subject</th>
                                     <th style="padding: 12px; color: #4a148c;">Role</th>
                                     <th style="padding: 12px; color: #4a148c;">Date</th>
+                                    <th style="padding: 12px; color: #4a148c;">Leave Type</th>
                                     <th style="padding: 12px; color: #4a148c;">Reason</th>
                                     <th style="padding: 12px; color: #4a148c;">Status</th>
                                     <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="adminLeaveRequestsBody">
-                                <tr><td colspan="8" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                                <tr><td colspan="9" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -277,14 +278,18 @@
                             <label>Leave Date</label>
                             <input type="date" id="leaveDateInput">
                         </div>
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>Reason for Leave</label>
-                            <select id="leaveReasonInput">
-                                <option value="">Select Reason...</option>
+                        <div class="form-group">
+                            <label>Leave Type</label>
+                            <select id="leaveTypeInput">
+                                <option value="">Select Leave Type...</option>
                                 <option value="Casual leave">Casual leave</option>
                                 <option value="Duty leave">Duty leave</option>
                                 <option value="Sick leave">Sick leave</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Reason for Leave</label>
+                            <input type="text" id="leaveReasonInput" placeholder="Enter custom reason here...">
                         </div>
                     </div>
                     <button class="btn btn-primary btn-full" onclick="submitLeaveRequest()">Submit Request</button>
@@ -297,12 +302,13 @@
                             <thead>
                                 <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
                                     <th style="padding: 12px; color: #4a148c;">Date</th>
+                                    <th style="padding: 12px; color: #4a148c;">Leave Type</th>
                                     <th style="padding: 12px; color: #4a148c;">Reason</th>
                                     <th style="padding: 12px; text-align: right; color: #4a148c;">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="myLeaveRequestsBody">
-                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Loading history...</td></tr>
+                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Loading history...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -620,13 +626,21 @@
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-            if (selectedClass && schoolData[selectedClass]) {
-                schoolData[selectedClass].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
+            // If Subject Teacher, only show their assigned subject
+            if (currentUser.role === 'subject_teacher') {
+                if (currentUser.subject && currentUser.subject !== "N/A") {
+                    subjectSelect.innerHTML += `<option value="${currentUser.subject}">${currentUser.subject}</option>`;
+                }
+            } else {
+                // Admin and Class Teachers can view all
+                if (selectedClass && schoolData[selectedClass]) {
+                    schoolData[selectedClass].forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectSelect.appendChild(option);
+                    });
+                }
             }
         }
 
@@ -757,8 +771,8 @@
                 snapshot.forEach(child => {
                     const t = child.val();
                     if (t.name === name) {
-                        currentUser.teacherId = t.teacherId;
-                        currentUser.subject = t.subject;
+                        currentUser.teacherId = t.teacherId || "N/A";
+                        currentUser.subject = t.subject || "N/A";
                         found = true;
                     }
                 });
@@ -827,20 +841,22 @@
         // --- LEAVE REQUEST LOGIC ---
         function submitLeaveRequest() {
             const date = document.getElementById('leaveDateInput').value;
-            const reason = document.getElementById('leaveReasonInput').value;
+            const leaveType = document.getElementById('leaveTypeInput').value;
+            const reason = document.getElementById('leaveReasonInput').value.trim();
             const tId = document.getElementById('leaveTeacherId').value;
             const tName = document.getElementById('leaveTeacherName').value;
             const tSub = document.getElementById('leaveTeacherSubject').value;
 
-            if (!date || !reason) return alert("Please select a date and reason!");
+            if (!date || !leaveType || !reason) return alert("Please select a date, leave type, and enter a reason!");
             if (tId === "N/A") return alert("Error: Cannot submit. Your Teacher profile is missing in the system.");
 
             database.ref('leaveRequests').push({
-                teacherId: tId, name: tName, subject: tSub, role: currentUser.role, date: date, reason: reason, status: 'Pending', timestamp: Date.now()
+                teacherId: tId, name: tName, subject: tSub, role: currentUser.role, date: date, type: leaveType, reason: reason, status: 'Pending', timestamp: Date.now()
             }, (error) => {
                 if (error) alert("Error: " + error.message);
                 else {
                     alert("Leave request submitted successfully!");
+                    document.getElementById('leaveTypeInput').value = '';
                     document.getElementById('leaveReasonInput').value = '';
                 }
             });
@@ -859,7 +875,7 @@
                 });
 
                 if (!hasRequests) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#666;">No leave history found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#666;">No leave history found</td></tr>';
                     return;
                 }
                 
@@ -869,7 +885,9 @@
                     let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px;">${req.date}</td><td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px;">${req.date}</td>
+                            <td style="padding: 12px; font-weight:500;">${req.type || 'N/A'}</td>
+                            <td style="padding: 12px;">${req.reason}</td>
                             <td style="padding: 12px; text-align:right;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span></td>
                         </tr>
                     `;
@@ -883,7 +901,7 @@
                 tbody.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
                     return;
                 }
 
@@ -905,9 +923,13 @@
 
                     tbody.innerHTML += `
                         <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td><td style="padding: 12px; font-weight: 500;">${req.name}</td>
-                            <td style="padding: 12px;">${req.subject || 'N/A'}</td><td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
-                            <td style="padding: 12px;">${req.date}</td><td style="padding: 12px;">${req.reason}</td>
+                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td>
+                            <td style="padding: 12px; font-weight: 500;">${req.name}</td>
+                            <td style="padding: 12px;">${req.subject || 'N/A'}</td>
+                            <td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
+                            <td style="padding: 12px;">${req.date}</td>
+                            <td style="padding: 12px; font-weight: 500;">${req.type || '-'}</td>
+                            <td style="padding: 12px;">${req.reason}</td>
                             <td style="padding: 12px;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight:bold;">${req.status}</span></td>
                             <td style="padding: 12px; text-align: right;">${actionBtns}</td>
                         </tr>
@@ -921,7 +943,7 @@
         }
 
 
-        // --- UTILITY & DATA FUNCTIONS (Force Strict Subjects) ---
+        // --- UTILITY & DATA FUNCTIONS ---
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'viewStudentGrade', 'viewAttClass', 'assignSubGrade'];
             classDropdownIds.forEach(id => {
@@ -988,7 +1010,7 @@
             });
         }
 
-        // Filter Mark Attendance Subjects based on Roles
+        // Filter Mark Attendance Subjects based on Roles (FIXED)
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
@@ -1000,28 +1022,23 @@
                 subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
             }
 
-            if (selectedClass && schoolData[selectedClass]) {
-                schoolData[selectedClass].forEach(subject => {
-                    if(subject !== "Daily School Attendance") {
-                        let canShow = false;
-
-                        // Subject teacher ONLY sees their assigned subject
-                        if (currentUser.role === 'subject_teacher') {
-                            if (currentUser.subject === subject) {
-                                canShow = true;
-                            }
-                        } else {
-                            canShow = true; // Admin & Class Teachers see all
-                        }
-
-                        if (canShow) {
+            // Fix for Subject Teacher: Direct Injection
+            if (currentUser.role === 'subject_teacher') {
+                if (currentUser.subject && currentUser.subject !== "N/A") {
+                    subjectSelect.innerHTML += `<option value="${currentUser.subject}" selected>${currentUser.subject}</option>`;
+                }
+            } else {
+                // For Admin & Class Teacher
+                if (selectedClass && schoolData[selectedClass]) {
+                    schoolData[selectedClass].forEach(subject => {
+                        if(subject !== "Daily School Attendance") {
                             const option = document.createElement('option');
                             option.value = subject;
                             option.textContent = subject;
                             subjectSelect.appendChild(option);
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
