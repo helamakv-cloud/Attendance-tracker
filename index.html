@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Attendance Tracker</title>
+    <title>Smart Attendance Tracker - Firebase Edition</title>
     
     <!-- jsPDF & Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Firebase SDK (Include Auth) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -92,32 +92,41 @@
     <div class="container">
         <div class="header">
             <h1>📚 Smart Attendance Tracker</h1>
-            <p>Connected with Realtime Database</p>
+            <p>Connected with Firebase Realtime Database</p>
             <div class="role-badge" id="roleBadge">Not Logged In</div>
             <button class="logout-btn" id="logoutBtn" style="display: none;" onclick="logout()">Logout</button>
         </div>
 
-        <!-- FIREBASE LOGIN SCREEN -->
+        <!-- LOGIN SCREEN -->
         <div class="login-wrapper" id="loginScreen">
             <div class="login-card">
                 <h2>System Login</h2>
                 
                 <div class="info-box" style="text-align: left; font-size: 0.85em;">
-                    <strong>Note:</strong> Secure login via Firebase Authentication. 
+                    <strong>Note:</strong> Your login name must match the name registered by Admin to auto-fill leave requests and filter your subjects.
                 </div>
 
                 <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="loginEmail" placeholder="e.g. kelum@school.com">
+                    <label>Your Name</label>
+                    <input type="text" id="loginUserName" placeholder="e.g. John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Select Role</label>
+                    <select id="loginRoleSelect">
+                        <option value="">Select Role...</option>
+                        <option value="admin">👨‍💻 Admin</option>
+                        <option value="class_teacher">👨‍🏫 Class Teacher</option>
+                        <option value="subject_teacher">📝 Subject Teacher</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter password">
                 </div>
-                <button class="btn btn-primary btn-full" onclick="loginWithFirebase()">Login</button>
+                <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
-                    Developer - Kelum Konara | 0714469232
+                    Developer - Kelum Koonara | 0714469232
                 </div>
             </div>
         </div>
@@ -269,12 +278,12 @@
                             <input type="date" id="leaveDateInput">
                         </div>
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>Reason for Leave (නිවාඩු වර්ගය)</label>
+                            <label>Reason for Leave</label>
                             <select id="leaveReasonInput">
                                 <option value="">Select Reason...</option>
-                                <option value="Casual (අනියම්)">Casual (අනියම්)</option>
-                                <option value="Sick (අසනීප)">Sick (අසනීප)</option>
-                                <option value="Duty (රාජකාරි)">Duty (රාජකාරි)</option>
+                                <option value="Casual leave">Casual leave</option>
+                                <option value="Duty leave">Duty leave</option>
+                                <option value="Sick leave">Sick leave</option>
                             </select>
                         </div>
                     </div>
@@ -373,7 +382,7 @@
                             <input type="tel" id="studentPhone" placeholder="Enter phone number">
                         </div>
                     </div>
-                    <button class="btn-primary btn-full btn" style="margin-top: 10px;" onclick="addNewStudent()">Add Student</button>
+                    <button class="btn btn-primary btn-full" style="margin-top: 10px;" onclick="addNewStudent()">Add Student</button>
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
@@ -509,13 +518,13 @@
             </div>
 
             <div class="footer-credit">
-                Developer - Kelum Konara | 0714469232
+                Developer - Kelum Koonara | 0714469232
             </div>
         </div>
     </div>
 
     <script>
-        // FIREBASE CONFIGURATION - (Make sure to enable Authentication in Firebase Console)
+        // FIREBASE CONFIGURATION
         const firebaseConfig = {
             databaseURL: "https://smart-attendance-e2b89-default-rtdb.firebaseio.com"
         };
@@ -525,6 +534,12 @@
         const defaultClasses = ["Grade 6", "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11"];
         let schoolData = {};
         let subjectCategoriesData = {};
+        
+        const rolePasswords = {
+            "admin": "admin123",
+            "class_teacher": "class123",
+            "subject_teacher": "subject123"
+        };
 
         const juniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
@@ -542,10 +557,12 @@
 
         let currentUser = { name: "", role: "", teacherId: "N/A", subject: "N/A" };
 
-        // AUTO-PERSISTENCE: Listen for Auth State Changes on Load
         window.onload = function() {
             loadAllClasses();
-
+            fetchDataFromFirebase();
+            loadTeacherList();
+            loadDashboardStats(); 
+            
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -555,123 +572,7 @@
             document.getElementById('attendanceDate').value = formattedToday;
             document.getElementById('leaveDateInput').value = formattedToday;
             document.getElementById('viewAttDate').value = formattedToday;
-
-            // Firebase state persistence listener
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    // User is logged in securely
-                    fetchDataFromFirebase();
-                    loadTeacherList();
-                    loadDashboardStats(); 
-                    fetchUserProfileAndLogin(user.email);
-                } else {
-                    // User is signed out: Show login screen
-                    document.getElementById('loginScreen').style.display = 'flex';
-                    document.getElementById('appContent').style.display = 'none';
-                    document.getElementById('logoutBtn').style.display = 'none';
-                    document.getElementById('roleBadge').innerText = "Not Logged In";
-                }
-            });
         };
-
-        // FIREBASE SIGN-IN FUNCTION
-        function loginWithFirebase() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) return alert("Please enter both email and password!");
-
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    // Success! The onAuthStateChanged listener will handle the UI switch automatically.
-                })
-                .catch((error) => {
-                    alert("Authentication Failed: " + error.message);
-                });
-        }
-
-        // FETCH USER DETAILS & ROLE FROM REALTIME DATABASE
-        function fetchUserProfileAndLogin(userEmail) {
-            database.ref('teachers').once('value', snapshot => {
-                let matchedTeacher = null;
-                snapshot.forEach(child => {
-                    const t = child.val();
-                    if (t.email && t.email.toLowerCase() === userEmail.toLowerCase()) {
-                        matchedTeacher = t;
-                    }
-                });
-
-                if (matchedTeacher) {
-                    currentUser.name = matchedTeacher.name;
-                    currentUser.role = matchedTeacher.role || 'subject_teacher';
-                    currentUser.teacherId = matchedTeacher.teacherId || 'N/A';
-                    currentUser.subject = matchedTeacher.subject || 'N/A';
-
-                    document.getElementById('leaveTeacherId').value = currentUser.teacherId;
-                    document.getElementById('leaveTeacherName').value = currentUser.name;
-                    document.getElementById('leaveTeacherSubject').value = currentUser.subject;
-
-                    finalizeLogin(currentUser.role, currentUser.name);
-                } else {
-                    alert("User authenticated, but teacher profile was not found in the database. Please contact Admin.");
-                    firebase.auth().signOut();
-                }
-            });
-        }
-
-        function finalizeLogin(role, name) {
-            let roleDisplay = (role === 'admin') ? "Admin" : (role === 'class_teacher' ? "Class Teacher" : "Subject Teacher");
-            document.getElementById('roleBadge').innerText = `${name} (${roleDisplay})`;
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContent').style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'block';
-
-            applyRolePermissions(role);
-        }
-
-        // SECURE LOGOUT FUNCTION
-        function logout() {
-            if(confirm("Are you sure you want to logout?")) {
-                firebase.auth().signOut().then(() => {
-                    location.reload(); 
-                });
-            }
-        }
-
-        function applyRolePermissions(role) {
-            const tabs = ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers', 'leave'];
-            tabs.forEach(tab => document.getElementById(`tab-btn-${tab}`).style.display = 'none');
-
-            if (role === 'admin') {
-                ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers'].forEach(t => 
-                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
-                );
-                showTab('dashboard');
-                loadAdminLeaveRequests();
-            } else if (role === 'class_teacher') {
-                ['attendance', 'view-attendance', 'students', 'leave'].forEach(t => 
-                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
-                );
-                showTab('attendance');
-                loadMyLeaveRequests();
-            } else if (role === 'subject_teacher') {
-                ['attendance', 'leave'].forEach(t => 
-                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
-                );
-                showTab('attendance');
-                loadMyLeaveRequests();
-            }
-        }
-
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-            const targetTab = document.getElementById(tabId);
-            const targetBtn = document.getElementById('tab-btn-' + tabId);
-            if (targetTab) targetTab.style.display = 'block';
-            if (targetBtn) targetBtn.classList.add('active');
-        }
 
         // --- DASHBOARD REAL-TIME STATS ---
         function loadDashboardStats() {
@@ -837,15 +738,101 @@
             doc.save(`Attendance_${grade}_${dateStr}.pdf`);
         }
 
+        // --- LOGIN & ROLE PERMISSIONS ---
+        function login() {
+            const name = document.getElementById('loginUserName').value.trim();
+            const role = document.getElementById('loginRoleSelect').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!name) return alert("Please enter your name!");
+            if (!role) return alert("Please select a role!");
+            if (!password) return alert("Please enter the password!");
+            if (password !== rolePasswords[role]) return alert("Incorrect Password! Please try again.");
+
+            currentUser.name = name;
+            currentUser.role = role;
+
+            database.ref('teachers').once('value', snapshot => {
+                let found = false;
+                snapshot.forEach(child => {
+                    const t = child.val();
+                    if (t.name === name) {
+                        currentUser.teacherId = t.teacherId;
+                        currentUser.subject = t.subject;
+                        found = true;
+                    }
+                });
+
+                if (role !== 'admin' && !found) {
+                    return alert("Error: Teacher name not found in the database. Please ensure the admin has registered your exact name.");
+                }
+                
+                document.getElementById('leaveTeacherId').value = currentUser.teacherId;
+                document.getElementById('leaveTeacherName').value = currentUser.name;
+                document.getElementById('leaveTeacherSubject').value = currentUser.subject;
+                
+                finalizeLogin(role, name);
+            });
+        }
+
+        function finalizeLogin(role, name) {
+            let roleDisplay = (role === 'admin') ? "Admin" : (role === 'class_teacher' ? "Class Teacher" : "Subject Teacher");
+            document.getElementById('roleBadge').innerText = `${name} (${roleDisplay})`;
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContent').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'block';
+
+            applyRolePermissions(role);
+        }
+
+        function logout() {
+            if(confirm("Are you sure you want to logout?")) location.reload(); 
+        }
+
+        function applyRolePermissions(role) {
+            const tabs = ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers', 'leave'];
+            tabs.forEach(tab => document.getElementById(`tab-btn-${tab}`).style.display = 'none');
+
+            if (role === 'admin') {
+                ['dashboard', 'attendance', 'view-attendance', 'students', 'subjects', 'teachers'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('dashboard');
+                loadAdminLeaveRequests();
+            } else if (role === 'class_teacher') {
+                ['attendance', 'view-attendance', 'students', 'leave'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('attendance');
+                loadMyLeaveRequests();
+            } else if (role === 'subject_teacher') {
+                ['attendance', 'leave'].forEach(t => 
+                    document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
+                );
+                showTab('attendance');
+                loadMyLeaveRequests();
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            const targetTab = document.getElementById(tabId);
+            const targetBtn = document.getElementById('tab-btn-' + tabId);
+            if (targetTab) targetTab.style.display = 'block';
+            if (targetBtn) targetBtn.classList.add('active');
+        }
+
         // --- LEAVE REQUEST LOGIC ---
         function submitLeaveRequest() {
             const date = document.getElementById('leaveDateInput').value;
-            const reason = document.getElementById('leaveReasonInput').value.trim();
+            const reason = document.getElementById('leaveReasonInput').value;
             const tId = document.getElementById('leaveTeacherId').value;
             const tName = document.getElementById('leaveTeacherName').value;
             const tSub = document.getElementById('leaveTeacherSubject').value;
 
-            if (!date || !reason) return alert("Please select a date and enter a reason!");
+            if (!date || !reason) return alert("Please select a date and reason!");
             if (tId === "N/A") return alert("Error: Cannot submit. Your Teacher profile is missing in the system.");
 
             database.ref('leaveRequests').push({
@@ -933,7 +920,8 @@
             if(confirm(`Are you sure you want to mark this request as ${status}?`)) database.ref('leaveRequests/' + id).update({ status: status });
         }
 
-        // --- UTILITY & DATA FUNCTIONS ---
+
+        // --- UTILITY & DATA FUNCTIONS (Force Strict Subjects) ---
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'viewStudentGrade', 'viewAttClass', 'assignSubGrade'];
             classDropdownIds.forEach(id => {
@@ -962,33 +950,45 @@
         }
 
         function fetchDataFromFirebase() {
-            schoolData = { 
-                "Grade 6": [...juniorSubjectsList], "Grade 7": [...juniorSubjectsList], "Grade 8": [...juniorSubjectsList], 
-                "Grade 9": [...juniorSubjectsList], "Grade 10": [...seniorSubjectsList], "Grade 11": [...seniorSubjectsList] 
-            };
-            
-            database.ref('schoolData').set(schoolData);
-
-            const categories = { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
-            defaultClasses.forEach(grade => {
-                let subjects = grade.match(/10|11/) ? seniorSubjectsList : juniorSubjectsList;
-                subjects.forEach(sub => {
-                    if (["Art", "Dancing", "Music"].includes(sub)) categories[grade][sub] = "Bucket 2";
-                    else if (["Civics", "Geography", "Commerce"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 1";
-                    else if (["Information and Communication Technology (ICT)", "Health & PE", "Agriculture"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 3";
-                    else categories[grade][sub] = "Core";
+            // Load schoolData from DB, if it doesn't exist, set defaults
+            database.ref('schoolData').once('value', snap => {
+                if (snap.exists()) {
+                    schoolData = snap.val();
+                } else {
+                    schoolData = { 
+                        "Grade 6": [...juniorSubjectsList], "Grade 7": [...juniorSubjectsList], "Grade 8": [...juniorSubjectsList], 
+                        "Grade 9": [...juniorSubjectsList], "Grade 10": [...seniorSubjectsList], "Grade 11": [...seniorSubjectsList] 
+                    };
+                    database.ref('schoolData').set(schoolData);
+                }
+                
+                database.ref('subjectCategories').once('value', catSnap => {
+                    if (catSnap.exists()) {
+                        subjectCategoriesData = catSnap.val();
+                    } else {
+                        const categories = { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
+                        defaultClasses.forEach(grade => {
+                            let subjects = grade.match(/10|11/) ? seniorSubjectsList : juniorSubjectsList;
+                            subjects.forEach(sub => {
+                                if (["Art", "Dancing", "Music"].includes(sub)) categories[grade][sub] = "Bucket 2";
+                                else if (["Civics", "Geography", "Commerce"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 1";
+                                else if (["Information and Communication Technology (ICT)", "Health & PE", "Agriculture"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 3";
+                                else categories[grade][sub] = "Core";
+                            });
+                        });
+                        database.ref('subjectCategories').set(categories);
+                        subjectCategoriesData = categories;
+                    }
+                    
+                    filterSubjects();
+                    filterViewSubjects();
+                    filterAssignSubjects();
+                    loadUniqueSubjects(); 
                 });
             });
-            database.ref('subjectCategories').set(categories);
-            subjectCategoriesData = categories;
-
-            filterSubjects();
-            filterViewSubjects();
-            filterAssignSubjects();
-            loadUniqueSubjects(); 
         }
 
-        // Bug Fixed: Filter Mark Attendance Subjects based on Roles robustly
+        // Filter Mark Attendance Subjects based on Roles
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
@@ -1007,7 +1007,7 @@
 
                         // Subject teacher ONLY sees their assigned subject
                         if (currentUser.role === 'subject_teacher') {
-                            if (currentUser.subject && currentUser.subject.trim().toLowerCase() === subject.trim().toLowerCase()) {
+                            if (currentUser.subject === subject) {
                                 canShow = true;
                             }
                         } else {
@@ -1051,6 +1051,7 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
+                    // Show ONLY Bucket subjects
                     if (subjectCategoriesData[selectedClass] && subjectCategoriesData[selectedClass][subject] !== "Core" && subject !== "Daily School Attendance") {
                         const option = document.createElement('option');
                         option.value = subject;
