@@ -547,18 +547,20 @@
             "subject_teacher": "subject123"
         };
 
+        // Added ICT to Junior Grades
         const juniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
             "Science", "English", "History", "Geography", "Civics", 
-            "Health & PE", "PTS", "Tamil Language", "Art", "Dancing", "Music"
+            "Health & PE", "PTS", "Tamil Language", "Art", "Dancing", "Music", "ICT"
         ];
         
+        // Removed Information and Communication Technology (ICT) from Senior Grades
         const seniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
             "Science", "English", "History", 
             "Civics", "Geography", "Commerce", 
             "Art", "Dancing", "Music", 
-            "Information and Communication Technology (ICT)", "Health & PE", "Agriculture"
+            "Health & PE", "Agriculture"
         ];
 
         let currentUser = { name: "", role: "", teacherId: "N/A", subject: "N/A" };
@@ -619,7 +621,7 @@
             });
         }
 
-        // --- VIEW ATTENDANCE LOGIC (WITH PRINT/PDF) ---
+        // --- VIEW ATTENDANCE LOGIC ---
         function filterViewSubjects() {
             const selectedClass = document.getElementById('viewAttClass').value;
             const subjectSelect = document.getElementById('viewAttSubject');
@@ -952,8 +954,7 @@
             if(confirm(`Are you sure you want to mark this request as ${status}?`)) database.ref('leaveRequests/' + id).update({ status: status });
         }
 
-
-        // --- UTILITY & DATA FUNCTIONS ---
+        // --- DATA SYNCHRONIZATION WITH FIREBASE ---
         function loadAllClasses() {
             const classDropdownIds = ['selectClass', 'studentGrade', 'viewStudentGrade', 'viewAttClass', 'assignSubGrade'];
             classDropdownIds.forEach(id => {
@@ -982,36 +983,58 @@
         }
 
         function fetchDataFromFirebase() {
-            // Load schoolData from DB, if it doesn't exist, set defaults
             database.ref('schoolData').once('value', snap => {
-                if (snap.exists()) {
-                    schoolData = snap.val();
-                } else {
-                    schoolData = { 
-                        "Grade 6": [...juniorSubjectsList], "Grade 7": [...juniorSubjectsList], "Grade 8": [...juniorSubjectsList], 
-                        "Grade 9": [...juniorSubjectsList], "Grade 10": [...seniorSubjectsList], "Grade 11": [...seniorSubjectsList] 
-                    };
-                    database.ref('schoolData').set(schoolData);
-                }
+                let dbSchoolData = snap.exists() ? snap.val() : {};
                 
-                database.ref('subjectCategories').once('value', catSnap => {
-                    if (catSnap.exists()) {
-                        subjectCategoriesData = catSnap.val();
-                    } else {
-                        const categories = { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
-                        defaultClasses.forEach(grade => {
-                            let subjects = grade.match(/10|11/) ? seniorSubjectsList : juniorSubjectsList;
-                            subjects.forEach(sub => {
-                                if (["Art", "Dancing", "Music"].includes(sub)) categories[grade][sub] = "Bucket 2";
-                                else if (["Civics", "Geography", "Commerce"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 1";
-                                else if (["Information and Communication Technology (ICT)", "Health & PE", "Agriculture"].includes(sub) && grade.match(/10|11/)) categories[grade][sub] = "Bucket 3";
-                                else categories[grade][sub] = "Core";
-                            });
-                        });
-                        database.ref('subjectCategories').set(categories);
-                        subjectCategoriesData = categories;
-                    }
+                // Add default junior subjects to Grades 6-9
+                ["Grade 6", "Grade 7", "Grade 8", "Grade 9"].forEach(grade => {
+                    if (!dbSchoolData[grade]) dbSchoolData[grade] = [];
+                    juniorSubjectsList.forEach(sub => {
+                        if (!dbSchoolData[grade].includes(sub)) dbSchoolData[grade].push(sub);
+                    });
+                });
+                
+                // Add default senior subjects to Grades 10-11 & REMOVE old ICT name
+                ["Grade 10", "Grade 11"].forEach(grade => {
+                    if (!dbSchoolData[grade]) dbSchoolData[grade] = [];
+                    // Force Remove old ICT name
+                    dbSchoolData[grade] = dbSchoolData[grade].filter(s => s !== "Information and Communication Technology (ICT)");
                     
+                    seniorSubjectsList.forEach(sub => {
+                        if (!dbSchoolData[grade].includes(sub)) dbSchoolData[grade].push(sub);
+                    });
+                });
+
+                schoolData = dbSchoolData;
+                database.ref('schoolData').set(schoolData);
+
+                // Now setup categories properly
+                database.ref('subjectCategories').once('value', catSnap => {
+                    let dbCategories = catSnap.exists() ? catSnap.val() : { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
+                    
+                    // Cleanup removed subject from categories
+                    ["Grade 10", "Grade 11"].forEach(grade => {
+                        if (dbCategories[grade] && dbCategories[grade]["Information and Communication Technology (ICT)"]) {
+                            delete dbCategories[grade]["Information and Communication Technology (ICT)"];
+                        }
+                    });
+
+                    defaultClasses.forEach(grade => {
+                        if(!dbCategories[grade]) dbCategories[grade] = {};
+                        let subjects = grade.match(/10|11/) ? seniorSubjectsList : juniorSubjectsList;
+                        subjects.forEach(sub => {
+                            if (!dbCategories[grade][sub]) {
+                                if (["Art", "Dancing", "Music"].includes(sub)) dbCategories[grade][sub] = "Bucket 2";
+                                else if (["Civics", "Geography", "Commerce"].includes(sub) && grade.match(/10|11/)) dbCategories[grade][sub] = "Bucket 1";
+                                else if (["Health & PE", "Agriculture"].includes(sub) && grade.match(/10|11/)) dbCategories[grade][sub] = "Bucket 3";
+                                else dbCategories[grade][sub] = "Core";
+                            }
+                        });
+                    });
+
+                    subjectCategoriesData = dbCategories;
+                    database.ref('subjectCategories').set(subjectCategoriesData);
+
                     filterSubjects();
                     filterViewSubjects();
                     filterAssignSubjects();
@@ -1032,26 +1055,23 @@
                 subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
             }
 
-            if (selectedClass && schoolData[selectedClass]) {
-                schoolData[selectedClass].forEach(subject => {
-                    if(subject !== "Daily School Attendance") {
-                        if (currentUser.role === 'subject_teacher') {
-                            // Subject Teacher: Only show their assigned subject
-                            if (currentUser.subject === subject) {
-                                const option = document.createElement('option');
-                                option.value = subject;
-                                option.textContent = subject;
-                                subjectSelect.appendChild(option);
-                            }
-                        } else {
-                            // Admin & Class Teacher: Show ALL subjects
+            // Subject Teacher: Direct Injection
+            if (currentUser.role === 'subject_teacher') {
+                if (currentUser.subject && currentUser.subject !== "N/A") {
+                    subjectSelect.innerHTML += `<option value="${currentUser.subject}" selected>${currentUser.subject}</option>`;
+                }
+            } else {
+                // For Admin & Class Teacher
+                if (selectedClass && schoolData[selectedClass]) {
+                    schoolData[selectedClass].forEach(subject => {
+                        if(subject !== "Daily School Attendance") {
                             const option = document.createElement('option');
                             option.value = subject;
                             option.textContent = subject;
                             subjectSelect.appendChild(option);
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
