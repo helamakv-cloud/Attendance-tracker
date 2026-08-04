@@ -626,21 +626,31 @@
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-            // If Subject Teacher, only show their assigned subject
-            if (currentUser.role === 'subject_teacher') {
-                if (currentUser.subject && currentUser.subject !== "N/A") {
-                    subjectSelect.innerHTML += `<option value="${currentUser.subject}">${currentUser.subject}</option>`;
-                }
-            } else {
-                // Admin and Class Teachers can view all
-                if (selectedClass && schoolData[selectedClass]) {
-                    schoolData[selectedClass].forEach(subject => {
-                        const option = document.createElement('option');
-                        option.value = subject;
-                        option.textContent = subject;
-                        subjectSelect.appendChild(option);
-                    });
-                }
+            // Show Daily School Attendance option for Admin & Class Teacher
+            if (currentUser.role === 'admin' || currentUser.role === 'class_teacher') {
+                subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
+            }
+
+            if (selectedClass && schoolData[selectedClass]) {
+                schoolData[selectedClass].forEach(subject => {
+                    if (subject !== "Daily School Attendance") {
+                        if (currentUser.role === 'subject_teacher') {
+                            // Subject Teacher: Only show their assigned subject
+                            if (currentUser.subject === subject) {
+                                const option = document.createElement('option');
+                                option.value = subject;
+                                option.textContent = subject;
+                                subjectSelect.appendChild(option);
+                            }
+                        } else {
+                            // Admin & Class Teacher: Show ALL subjects
+                            const option = document.createElement('option');
+                            option.value = subject;
+                            option.textContent = subject;
+                            subjectSelect.appendChild(option);
+                        }
+                    }
+                });
             }
         }
 
@@ -821,7 +831,7 @@
                 showTab('attendance');
                 loadMyLeaveRequests();
             } else if (role === 'subject_teacher') {
-                ['attendance', 'leave'].forEach(t => 
+                ['attendance', 'leave', 'view-attendance'].forEach(t => 
                     document.getElementById(`tab-btn-${t}`).style.display = 'inline-block'
                 );
                 showTab('attendance');
@@ -1010,7 +1020,7 @@
             });
         }
 
-        // Filter Mark Attendance Subjects based on Roles (FIXED)
+        // Filter Mark Attendance Subjects based on Roles
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
@@ -1022,23 +1032,26 @@
                 subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
             }
 
-            // Fix for Subject Teacher: Direct Injection
-            if (currentUser.role === 'subject_teacher') {
-                if (currentUser.subject && currentUser.subject !== "N/A") {
-                    subjectSelect.innerHTML += `<option value="${currentUser.subject}" selected>${currentUser.subject}</option>`;
-                }
-            } else {
-                // For Admin & Class Teacher
-                if (selectedClass && schoolData[selectedClass]) {
-                    schoolData[selectedClass].forEach(subject => {
-                        if(subject !== "Daily School Attendance") {
+            if (selectedClass && schoolData[selectedClass]) {
+                schoolData[selectedClass].forEach(subject => {
+                    if(subject !== "Daily School Attendance") {
+                        if (currentUser.role === 'subject_teacher') {
+                            // Subject Teacher: Only show their assigned subject
+                            if (currentUser.subject === subject) {
+                                const option = document.createElement('option');
+                                option.value = subject;
+                                option.textContent = subject;
+                                subjectSelect.appendChild(option);
+                            }
+                        } else {
+                            // Admin & Class Teacher: Show ALL subjects
                             const option = document.createElement('option');
                             option.value = subject;
                             option.textContent = subject;
                             subjectSelect.appendChild(option);
                         }
-                    });
-                }
+                    }
+                });
             }
         }
 
