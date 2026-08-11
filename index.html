@@ -27,7 +27,7 @@
         .header h1 { font-size: 1.5em; margin-bottom: 5px; margin-top: 35px; }
         .header p { opacity: 0.9; font-size: 0.85em; }
         
-        .role-badge { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75em; border: 1px solid white; white-space: nowrap; }
+        .role-badge { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 20px; font-size: 0.75em; border: 1px solid white; white-space: nowrap; font-weight: bold; }
         .logout-btn { position: absolute; top: 15px; right: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8em; transition: all 0.3s; }
         .logout-btn:hover { background: #d32f2f; border-color: #d32f2f; color: white; }
         
@@ -41,41 +41,49 @@
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 0.9em; }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; background: white; outline: none; transition: border 0.3s; }
-        .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; }
+        .form-group input:focus, .form-group select:focus { border-color: #6a1b9a; box-shadow: 0 0 5px rgba(106, 27, 154, 0.2); }
         .form-group input[readonly] { background-color: #f0f0f0; color: #666; cursor: not-allowed; border-color: #ddd; }
 
         /* BUTTONS */
         .btn { padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 10px; }
         .btn-full { width: 100%; }
-        .btn-primary { background: #6a1b9a; color: white; }
-        .btn-primary:hover { background: #4a148c; }
-        .btn-success { background: #2e7d32; color: white; }
-        .btn-success:hover { background: #1b5e20; }
-        .btn-danger { background: #c62828; color: white; }
-        .btn-danger:hover { background: #b71c1c; }
+        .btn-primary { background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); color: white; box-shadow: 0 4px 10px rgba(106, 27, 154, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(106, 27, 154, 0.4); }
+        .btn-success { background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%); color: white; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46, 125, 50, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, #e53935 0%, #c62828 100%); color: white; }
         
-        /* BOXES, TABS & COLORFUL DASHBOARD */
+        /* BOXES & DASHBOARD CARDS */
         .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
         .info-box.alert { background: #ffebee; color: #c62828; border-left-color: #c62828; }
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
-        /* Colorful Dashboard Cards */
         .dash-box { padding: 25px 15px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .dash-box:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.2); }
         .dash-teachers { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .dash-students { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-        .dash-present { background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%); }
+        .dash-absent { background: linear-gradient(135deg, #f85032 0%, #e73827 100%); }
         .dash-title { font-size: 1.1em; font-weight: 600; opacity: 0.9; margin-top: 5px; }
 
+        /* TABS */
         .nav-tabs { display: flex; gap: 5px; border-bottom: 2px solid #e0e0e0; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-        .nav-tab { padding: 8px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 13px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; }
-        .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; }
+        .nav-tab { padding: 10px 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; border-bottom: 3px solid transparent; font-size: 14px; flex: 1 1 auto; min-width: 100px; text-align: center; white-space: nowrap; display: none; transition: all 0.3s; }
+        .nav-tab:hover { color: #8e24aa; background: #f3e5f5; border-radius: 6px 6px 0 0; }
+        .nav-tab.active { color: #6a1b9a; border-bottom-color: #6a1b9a; background: #f3e5f5; border-radius: 6px 6px 0 0; }
         .tab-content { display: none; }
         
-        /* CARDS & GRIDS */
-        .card { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
-        .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; }
-        .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        /* CARDS, GRIDS & TABLES */
+        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 8px; }
+        .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        
+        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .modern-table thead { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+        .modern-table th { padding: 12px; color: #4a148c; font-weight: 600; font-size: 0.9em; text-align: left; }
+        .modern-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .modern-table tr:last-child td { border-bottom: none; }
+        .modern-table tbody tr:hover { background: #fcf9fd; }
+
         .footer-credit { text-align: center; padding: 15px; color: #888; font-size: 0.85em; border-top: 1px solid #eee; margin-top: 20px; }
 
         @media (min-width: 768px) {
@@ -128,7 +136,7 @@
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
-                    Developer - Kelum Konara | 0714469232
+                    Developer - Kelum Koonara | 0714469232
                 </div>
             </div>
         </div>
@@ -148,8 +156,7 @@
 
             <!-- DASHBOARD TAB -->
             <div class="tab-content" id="dashboard">
-                <div class="card" style="background: transparent; border: none; padding: 0;">
-                    <h3 style="margin-bottom: 20px; color: #333;">Real-time System Overview</h3>
+                <div style="background: transparent; border: none; padding: 0; margin-bottom: 25px;">
                     <div class="grid-3">
                         <div class="dash-box dash-teachers">
                             <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-teachers-count">0</h2>
@@ -159,80 +166,75 @@
                             <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-attendance-count">0</h2>
                             <p class="dash-title">✅ Today's Present</p>
                         </div>
-                        <div class="dash-box" style="background: linear-gradient(135deg, #f85032 0%, #e73827 100%);">
+                        <div class="dash-box dash-absent">
                             <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-absent-count">0</h2>
                             <p class="dash-title">❌ Today's Absent</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid-2" style="margin-top: 25px;">
-                    <!-- Period Skippers Table -->
-                    <div class="card">
-                        <h3 style="color: #c62828;">⚠️ Period Skippers (පන්ති මගහැර ඇති සිසුන්)</h3>
-                        <div class="info-box alert" style="font-size: 0.8em;">උදෑසන පාසල් පැමිණ, එහෙත් අදාළ විෂය කාලපරිච්ඡේදය සඳහා නොපැමිණි සිසුන් මෙහි දැක්වේ.</div>
-                        <div style="overflow-x: auto; max-height: 300px;">
-                            <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
-                                <thead style="position: sticky; top: 0; background: #ffebee;">
-                                    <tr style="border-bottom: 2px solid #c62828;">
-                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">ID</th>
-                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Name</th>
-                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Grade</th>
-                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Subject</th>
-                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Period</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="skippers-body" style="font-size: 0.9em;">
-                                    <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Analyzing data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="card">
+                    <h3>📊 Teacher Leave Summary (Approved)</h3>
+                    <div class="info-box" style="font-size: 0.8em; margin-bottom: 15px;">
+                        වාර්ෂික අනියම්(21) සහ අසනීප(20) නිවාඩු සීමාවන් මෙන්ම මාසික කෙටි නිවාඩු(2) සීමාවන් මෙහි පෙන්වයි.
                     </div>
-
-                    <!-- Teacher Leave Statistics -->
-                    <div class="card">
-                        <h3>📊 Teacher Leave Summary</h3>
-                        <div class="info-box" style="font-size: 0.8em;">අනුමත වූ (Approved) ගුරු නිවාඩු පිළිබඳ වාර්තාව.</div>
-                        <div style="overflow-x: auto; max-height: 300px;">
-                            <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
-                                <thead style="position: sticky; top: 0; background: #e3f2fd;">
-                                    <tr style="border-bottom: 2px solid #1565c0;">
-                                        <th style="padding: 10px; color: #1565c0; font-size: 0.9em;">Teacher Name</th>
-                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">This Month</th>
-                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">This Year</th>
-                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">Short Leaves</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="leave-stats-body" style="font-size: 0.9em;">
-                                    <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Loading stats...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div style="overflow-x: auto; max-height: 350px;">
+                        <table class="modern-table">
+                            <thead style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th>👨‍🏫 Teacher Name</th>
+                                    <th style="text-align: center;">🏖️ Casual (Yr)</th>
+                                    <th style="text-align: center;">🤒 Sick (Yr)</th>
+                                    <th style="text-align: center;">💼 Duty (Yr)</th>
+                                    <th style="text-align: center;">⏱️ Short (Mo)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leave-stats-body">
+                                <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Loading stats...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Existing Pending Leave Requests Table -->
-                <div class="card" style="margin-top: 25px;">
-                    <h3>📩 Pending Leave Requests</h3>
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
-                            <thead>
-                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
-                                    <th style="padding: 12px; color: #4a148c;">ID</th>
-                                    <th style="padding: 12px; color: #4a148c;">Teacher Name</th>
-                                    <th style="padding: 12px; color: #4a148c;">Subject</th>
-                                    <th style="padding: 12px; color: #4a148c;">Role</th>
-                                    <th style="padding: 12px; color: #4a148c;">Date</th>
-                                    <th style="padding: 12px; color: #4a148c;">Leave Type</th>
-                                    <th style="padding: 12px; color: #4a148c;">Reason</th>
-                                    <th style="padding: 12px; color: #4a148c;">Status</th>
-                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminLeaveRequestsBody">
-                                <tr><td colspan="9" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
-                            </tbody>
-                        </table>
+                <div class="grid-2">
+                    <!-- Period Skippers Table -->
+                    <div class="card">
+                        <h3 style="color: #c62828;">⚠️ Period Skippers</h3>
+                        <div class="info-box alert" style="font-size: 0.8em; padding: 8px;">පාසල් පැමිණ පන්ති මගහැර ඇති සිසුන්.</div>
+                        <div style="overflow-x: auto; max-height: 280px;">
+                            <table class="modern-table">
+                                <thead style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);">
+                                    <tr>
+                                        <th style="color: #c62828; padding: 8px;">ID</th>
+                                        <th style="color: #c62828; padding: 8px;">Name</th>
+                                        <th style="color: #c62828; padding: 8px;">Grade</th>
+                                        <th style="color: #c62828; padding: 8px;">Period</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skippers-body">
+                                    <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Analyzing data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Existing Pending Leave Requests Table -->
+                    <div class="card">
+                        <h3>📩 Pending Leaves</h3>
+                        <div style="overflow-x: auto; max-height: 280px;">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th style="padding: 8px;">Name</th>
+                                        <th style="padding: 8px;">Type / Date</th>
+                                        <th style="padding: 8px; text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminLeaveRequestsBody">
+                                    <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -279,21 +281,21 @@
 
                 <div class="card" style="margin-top: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3>📋 Attendance Results</h3>
+                        <h3 style="margin: 0;">📋 Attendance Results</h3>
                         <div id="attendanceExportBtns" style="display: none; gap: 10px;">
                             <button class="btn btn-primary" style="margin-bottom: 0; padding: 8px 15px;" onclick="printAttendance()">🖨️ Print</button>
-                            <button class="btn btn-danger" style="margin-bottom: 0; padding: 8px 15px;" onclick="downloadPDF()">📄 Download PDF</button>
+                            <button class="btn btn-danger" style="margin-bottom: 0; padding: 8px 15px;" onclick="downloadPDF()">📄 PDF</button>
                         </div>
                     </div>
 
                     <div style="overflow-x: auto;">
-                        <table id="viewAttendanceTable" style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
-                            <thead>
-                                <tr style="background: #e3f2fd; border-bottom: 2px solid #1976d2;">
-                                    <th style="padding: 12px; color: #0d47a1;">Student ID</th>
-                                    <th style="padding: 12px; color: #0d47a1;">Student Name</th>
-                                    <th style="padding: 12px; text-align: center; color: #0d47a1;">Status</th>
-                                    <th style="padding: 12px; text-align: right; color: #0d47a1;">Marked By</th>
+                        <table id="viewAttendanceTable" class="modern-table">
+                            <thead style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                                <tr>
+                                    <th style="color: #0d47a1;">Student ID</th>
+                                    <th style="color: #0d47a1;">Student Name</th>
+                                    <th style="text-align: center; color: #0d47a1;">Status</th>
+                                    <th style="text-align: right; color: #0d47a1;">Marked By</th>
                                 </tr>
                             </thead>
                             <tbody id="viewAttendanceBody">
@@ -307,8 +309,10 @@
             <!-- LEAVE REQUEST TAB -->
             <div class="tab-content" id="leave">
                 <div class="card">
-                    <h3>Apply for Leave</h3>
-                    <div class="info-box">Your details have been automatically filled from the system database.</div>
+                    <h3>📩 Apply for Leave</h3>
+                    <div class="info-box">
+                        ඔබගේ වාර්ෂික නිවාඩු සීමාවන් (Casual-21, Sick-20) සහ මාසික කෙටි නිවාඩු සීමාව (2) පද්ධතිය මගින් පරීක්ෂා කෙරේ.
+                    </div>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Teacher ID</label>
@@ -330,9 +334,9 @@
                             <label>Leave Type</label>
                             <select id="leaveTypeInput">
                                 <option value="">Select Leave Type...</option>
-                                <option value="Casual leave">Casual leave</option>
-                                <option value="Duty leave">Duty leave</option>
-                                <option value="Sick leave">Sick leave</option>
+                                <option value="Casual leave">Casual leave (අනියම්)</option>
+                                <option value="Duty leave">Duty leave (රාජකාරි)</option>
+                                <option value="Sick leave">Sick leave (අසනීප)</option>
                                 <option value="Short leave">Short leave (කෙටි නිවාඩු)</option>
                             </select>
                         </div>
@@ -347,13 +351,13 @@
                 <div class="card" style="margin-top: 20px;">
                     <h3>My Leave History</h3>
                     <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                        <table class="modern-table">
                             <thead>
-                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
-                                    <th style="padding: 12px; color: #4a148c;">Date</th>
-                                    <th style="padding: 12px; color: #4a148c;">Leave Type</th>
-                                    <th style="padding: 12px; color: #4a148c;">Reason</th>
-                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Status</th>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Leave Type</th>
+                                    <th>Reason</th>
+                                    <th style="text-align: right;">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="myLeaveRequestsBody">
@@ -367,7 +371,7 @@
             <!-- ATTENDANCE TAB -->
             <div class="tab-content" id="attendance">
                 <div class="card">
-                    <h3>Mark Attendance</h3>
+                    <h3>📋 Mark Attendance</h3>
                     <div class="info-box">Subject Teachers will only see their assigned subjects in the list.</div>
                     <div class="grid-2">
                         <div class="form-group">
@@ -412,7 +416,7 @@
             <!-- STUDENTS TAB -->
             <div class="tab-content" id="students">
                 <div class="card">
-                    <h3>Add New Student</h3>
+                    <h3>👥 Add New Student</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Grade & Class</label>
@@ -450,13 +454,13 @@
                     </div>
 
                     <div style="overflow-x: auto; margin-top: 15px;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                        <table class="modern-table">
                             <thead>
-                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
-                                    <th style="padding: 12px; color: #4a148c;">Student ID</th>
-                                    <th style="padding: 12px; color: #4a148c;">Student Name</th>
-                                    <th style="padding: 12px; color: #4a148c;">Grade</th>
-                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Student Name</th>
+                                    <th>Grade</th>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentListTableBody">
@@ -525,7 +529,7 @@
             <!-- TEACHERS TAB -->
             <div class="tab-content" id="teachers">
                 <div class="card">
-                    <h3>Add New Teacher</h3>
+                    <h3>👨‍🏫 Add New Teacher</h3>
                     <div class="grid-2">
                         <div class="form-group">
                             <label>Teacher ID</label>
@@ -554,14 +558,14 @@
                 <div class="card" style="margin-top: 20px;">
                     <h3>📋 Teacher List & Actions</h3>
                     <div style="overflow-x: auto; margin-top: 15px;">
-                        <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                        <table class="modern-table">
                             <thead>
-                                <tr style="background: #f3e5f5; border-bottom: 2px solid #8e24aa;">
-                                    <th style="padding: 12px; color: #4a148c;">ID</th>
-                                    <th style="padding: 12px; color: #4a148c;">Name</th>
-                                    <th style="padding: 12px; color: #4a148c;">Subject</th>
-                                    <th style="padding: 12px; color: #4a148c;">Class Teacher</th>
-                                    <th style="padding: 12px; text-align: right; color: #4a148c;">Actions</th>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Subject</th>
+                                    <th>Class Teacher</th>
+                                    <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="teacherListTableBody">
@@ -573,7 +577,7 @@
             </div>
 
             <div class="footer-credit">
-                Developer - Kelum Konara | 0714469232
+                Developer - Kelum Koonara | 0714469232
             </div>
         </div>
     </div>
@@ -631,7 +635,6 @@
 
         // --- DASHBOARD REAL-TIME STATS ---
         function loadDashboardStats() {
-            // 1. Total Teachers
             database.ref('teachers').on('value', snap => {
                 let count = 0;
                 if(snap.exists()) count = Object.keys(snap.val()).length;
@@ -644,7 +647,6 @@
             const dd = String(today.getDate()).padStart(2, '0');
             const dateStr = `${yyyy}-${mm}-${dd}`;
 
-            // 2. Attendance & Skippers Logic
             database.ref(`attendance/${dateStr}`).on('value', snap => {
                 let presentCount = 0;
                 let absentCount = 0;
@@ -652,7 +654,6 @@
                 let skippers = [];
 
                 if(snap.exists()) {
-                    // First pass: Find Daily Attendance (In School)
                     snap.forEach(gradeSnap => {
                         const grade = gradeSnap.key;
                         dailyPresent[grade] = {};
@@ -671,7 +672,6 @@
                         }
                     });
 
-                    // Second pass: Cross-check other periods for 'Absent' marks
                     snap.forEach(gradeSnap => {
                         const grade = gradeSnap.key;
                         gradeSnap.forEach(subSnap => {
@@ -683,7 +683,6 @@
                                         const stId = studentSnap.key;
                                         const val = studentSnap.val();
                                         
-                                        // Condition: Student came to school (in dailyPresent) BUT marked Absent in this period
                                         if (dailyPresent[grade] && dailyPresent[grade][stId] && val.status === 'Absent') {
                                             skippers.push({ id: stId, name: val.name, grade: grade, subject: subject, period: period });
                                         }
@@ -697,29 +696,26 @@
                 document.getElementById('dash-attendance-count').innerText = presentCount;
                 document.getElementById('dash-absent-count').innerText = absentCount;
 
-                // Populate Skippers Table
                 const skippersBody = document.getElementById('skippers-body');
                 if (skippers.length === 0) {
-                    skippersBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#2e7d32;">No skipped periods detected today! 🎉</td></tr>';
+                    skippersBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#2e7d32; font-weight:bold;">No skipped periods detected today! 🎉</td></tr>';
                 } else {
                     skippersBody.innerHTML = '';
                     skippers.forEach(s => {
-                        skippersBody.innerHTML += `<tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 10px; font-weight: 500;">${s.id}</td>
-                            <td style="padding: 10px;">${s.name}</td>
-                            <td style="padding: 10px;">${s.grade}</td>
-                            <td style="padding: 10px;">${s.subject}</td>
-                            <td style="padding: 10px; color:#c62828; font-weight:bold;">${s.period}</td>
+                        skippersBody.innerHTML += `<tr>
+                            <td style="font-weight: 500;">${s.id}</td>
+                            <td>${s.name}</td>
+                            <td><span style="background: #e1bee7; padding: 3px 8px; border-radius: 10px; font-size: 0.8em;">${s.grade}</span></td>
+                            <td style="color:#c62828; font-weight:bold;">${s.subject} (${s.period})</td>
                         </tr>`;
                     });
                 }
             });
 
-            // 3. Load Teacher Leave Statistics
             loadLeaveStats();
         }
 
-        // Leave Statistics Function
+        // Leave Statistics Function with Casual, Sick, Duty & Short limits
         function loadLeaveStats() {
             database.ref('leaveRequests').on('value', snap => {
                 let stats = {};
@@ -731,15 +727,20 @@
                         const req = child.val();
                         if (req.status === 'Approved') { 
                             if (!stats[req.teacherId]) {
-                                stats[req.teacherId] = { name: req.name, monthly: 0, yearly: 0, short: 0 };
+                                stats[req.teacherId] = { name: req.name, casual: 0, sick: 0, duty: 0, short: 0 };
                             }
                             
                             const reqYear = req.date.substring(0, 4);
                             const reqMonth = req.date.substring(0, 7);
 
-                            if (reqYear === currentYear) stats[req.teacherId].yearly++;
-                            if (reqMonth === currentMonth) stats[req.teacherId].monthly++;
-                            if (req.type === 'Short leave') stats[req.teacherId].short++;
+                            if (reqYear === currentYear) {
+                                if (req.type === 'Casual leave') stats[req.teacherId].casual++;
+                                if (req.type === 'Sick leave') stats[req.teacherId].sick++;
+                                if (req.type === 'Duty leave') stats[req.teacherId].duty++;
+                            }
+                            if (reqMonth === currentMonth) {
+                                if (req.type === 'Short leave') stats[req.teacherId].short++;
+                            }
                         }
                     });
                 }
@@ -748,17 +749,24 @@
                 tbody.innerHTML = '';
                 
                 if (Object.keys(stats).length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No approved leaves recorded yet.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px;">No approved leaves recorded yet.</td></tr>';
                     return;
                 }
 
                 for (const tId in stats) {
                     const s = stats[tId];
-                    tbody.innerHTML += `<tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 10px; font-weight: 500;">${s.name}</td>
-                        <td style="padding: 10px; text-align:center;">${s.monthly}</td>
-                        <td style="padding: 10px; text-align:center;">${s.yearly}</td>
-                        <td style="padding: 10px; text-align:center; color:#e65100; font-weight:bold;">${s.short}</td>
+                    
+                    // Dynamic coloring based on limits
+                    const casualColor = s.casual >= 21 ? '#c62828' : '#2e7d32';
+                    const sickColor = s.sick >= 20 ? '#c62828' : '#f57c00';
+                    const shortColor = s.short >= 2 ? '#c62828' : '#1976d2';
+
+                    tbody.innerHTML += `<tr>
+                        <td style="font-weight: 600; color:#333;">${s.name}</td>
+                        <td style="text-align:center; font-weight:bold; color:${casualColor};">${s.casual} <span style="font-size:0.75em; color:#888; font-weight:normal;">/ 21</span></td>
+                        <td style="text-align:center; font-weight:bold; color:${sickColor};">${s.sick} <span style="font-size:0.75em; color:#888; font-weight:normal;">/ 20</span></td>
+                        <td style="text-align:center; font-weight:bold; color:#6a1b9a;">${s.duty}</td>
+                        <td style="text-align:center; font-weight:bold; color:${shortColor};">${s.short} <span style="font-size:0.75em; color:#888; font-weight:normal;">/ 2</span></td>
                     </tr>`;
                 }
             });
@@ -829,13 +837,13 @@
                     const statusBg = student.status === 'Present' ? '#e8f5e9' : '#ffebee';
                     
                     tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-weight: 500;">${studentId}</td>
-                            <td style="padding: 12px; font-weight: 500;">${student.name}</td>
-                            <td style="padding: 12px; text-align: center;">
+                        <tr>
+                            <td style="font-weight: 500;">${studentId}</td>
+                            <td style="font-weight: 500;">${student.name}</td>
+                            <td style="text-align: center;">
                                 <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${student.status}</span>
                             </td>
-                            <td style="padding: 12px; text-align: right; color: #666; font-size: 0.85em;">
+                            <td style="text-align: right; color: #666; font-size: 0.85em;">
                                 By: ${student.markedBy || 'N/A'}
                             </td>
                         </tr>
@@ -990,7 +998,7 @@
             if (targetBtn) targetBtn.classList.add('active');
         }
 
-        // --- LEAVE REQUEST LOGIC ---
+        // --- LEAVE REQUEST LOGIC WITH VALIDATIONS ---
         function submitLeaveRequest() {
             const date = document.getElementById('leaveDateInput').value;
             const leaveType = document.getElementById('leaveTypeInput').value;
@@ -1002,15 +1010,55 @@
             if (!date || !leaveType || !reason) return alert("Please select a date, leave type, and enter a reason!");
             if (tId === "N/A") return alert("Error: Cannot submit. Your Teacher profile is missing in the system.");
 
-            database.ref('leaveRequests').push({
-                teacherId: tId, name: tName, subject: tSub, role: currentUser.role, date: date, type: leaveType, reason: reason, status: 'Pending', timestamp: Date.now()
-            }, (error) => {
-                if (error) alert("Error: " + error.message);
-                else {
-                    alert("Leave request submitted successfully!");
-                    document.getElementById('leaveTypeInput').value = '';
-                    document.getElementById('leaveReasonInput').value = '';
+            const reqYear = date.substring(0, 4);
+            const reqMonth = date.substring(0, 7);
+
+            // Validate existing leaves (Approved & Pending) before submission
+            database.ref('leaveRequests').once('value', snap => {
+                let shortMonthCount = 0;
+                let sickYearCount = 0;
+                let casualYearCount = 0;
+
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const req = child.val();
+                        if (req.teacherId === tId && (req.status === 'Approved' || req.status === 'Pending')) {
+                            const rYear = req.date.substring(0, 4);
+                            const rMonth = req.date.substring(0, 7);
+                            
+                            if (rYear === reqYear) {
+                                if (req.type === 'Sick leave') sickYearCount++;
+                                if (req.type === 'Casual leave') casualYearCount++;
+                            }
+                            if (rMonth === reqMonth && req.type === 'Short leave') {
+                                shortMonthCount++;
+                            }
+                        }
+                    });
                 }
+
+                // Check Limits
+                if (leaveType === 'Short leave' && shortMonthCount >= 2) {
+                    return alert("❌ ඔබට එක් මාසයක් තුළ ලබාගත හැක්කේ කෙටි නිවාඩු (Short Leaves) 2ක් පමණි!");
+                }
+                if (leaveType === 'Sick leave' && sickYearCount >= 20) {
+                    return alert("❌ ඔබට එක් වසරක් තුළ ලබාගත හැක්කේ අසනීප නිවාඩු (Sick Leaves) 20ක් පමණි!");
+                }
+                if (leaveType === 'Casual leave' && casualYearCount >= 21) {
+                    return alert("❌ ඔබට එක් වසරක් තුළ ලබාගත හැක්කේ අනියම් නිවාඩු (Casual Leaves) 21ක් පමණි!");
+                }
+
+                // If validations pass, submit request
+                database.ref('leaveRequests').push({
+                    teacherId: tId, name: tName, subject: tSub, role: currentUser.role, date: date, type: leaveType, reason: reason, status: 'Pending', timestamp: Date.now()
+                }, (error) => {
+                    if (error) alert("Error: " + error.message);
+                    else {
+                        alert("Leave request submitted successfully! Pending Admin Approval.");
+                        document.getElementById('leaveTypeInput').value = '';
+                        document.getElementById('leaveReasonInput').value = '';
+                    }
+                });
             });
         }
 
@@ -1036,11 +1084,11 @@
                 requests.forEach(req => {
                     let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
                     tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px;">${req.date}</td>
-                            <td style="padding: 12px; font-weight:500;">${req.type || 'N/A'}</td>
-                            <td style="padding: 12px;">${req.reason}</td>
-                            <td style="padding: 12px; text-align:right;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span></td>
+                        <tr>
+                            <td>${req.date}</td>
+                            <td style="font-weight:500;">${req.type || 'N/A'}</td>
+                            <td>${req.reason}</td>
+                            <td style="text-align:right;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight:bold;">${req.status}</span></td>
                         </tr>
                     `;
                 });
@@ -1053,37 +1101,32 @@
                 tbody.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:15px; color:#666;">No pending leave requests</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#666;">No pending requests</td></tr>';
                     return;
                 }
 
                 const requests = [];
-                snapshot.forEach(child => { requests.push({ id: child.key, ...child.val() }); });
+                snapshot.forEach(child => { 
+                    const req = child.val();
+                    if(req.status === 'Pending') requests.push({ id: child.key, ...req }); 
+                });
+                
                 requests.sort((a,b) => b.timestamp - a.timestamp);
                 
-                requests.forEach(req => {
-                    let badgeColor = req.status === 'Approved' ? '#2e7d32' : (req.status === 'Rejected' ? '#c62828' : '#f57c00');
-                    let roleStr = req.role === 'class_teacher' ? 'Class Tr.' : 'Subject Tr.';
-                    
-                    let actionBtns = '';
-                    if (req.status === 'Pending') {
-                        actionBtns = `
-                            <button onclick="updateLeaveStatus('${req.id}', 'Approved')" style="background: #2e7d32; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 0.8em;">Approve</button>
-                            <button onclick="updateLeaveStatus('${req.id}', 'Rejected')" style="background: #c62828; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Reject</button>
-                        `;
-                    } else actionBtns = `<span style="color: #888; font-size:0.85em;">Resolved</span>`;
+                if (requests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#2e7d32; font-weight:bold;">All caught up! 🎉</td></tr>';
+                    return;
+                }
 
+                requests.forEach(req => {
                     tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-weight: 500;">${req.teacherId || 'N/A'}</td>
-                            <td style="padding: 12px; font-weight: 500;">${req.name}</td>
-                            <td style="padding: 12px;">${req.subject || 'N/A'}</td>
-                            <td style="padding: 12px; font-size: 0.9em;">${roleStr}</td>
-                            <td style="padding: 12px;">${req.date}</td>
-                            <td style="padding: 12px; font-weight: 500;">${req.type || '-'}</td>
-                            <td style="padding: 12px;">${req.reason}</td>
-                            <td style="padding: 12px;"><span style="background: ${badgeColor}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight:bold;">${req.status}</span></td>
-                            <td style="padding: 12px; text-align: right;">${actionBtns}</td>
+                        <tr>
+                            <td style="font-weight: 500;">${req.name}<br><span style="font-size:0.8em; color:#888;">${req.subject || '-'}</span></td>
+                            <td><strong style="color:#6a1b9a;">${req.type}</strong><br><span style="font-size:0.85em;">${req.date} | ${req.reason}</span></td>
+                            <td style="text-align: right;">
+                                <button onclick="updateLeaveStatus('${req.id}', 'Approved')" style="background: #2e7d32; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 0.8em; margin-bottom:5px;">Approve</button>
+                                <button onclick="updateLeaveStatus('${req.id}', 'Rejected')" style="background: #c62828; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Reject</button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1371,11 +1414,11 @@
                     const student = childSnapshot.val();
                     const studentId = childSnapshot.key; 
                     tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px; font-weight: bold; color: #4a148c;">${studentId}</td>
-                            <td style="padding: 12px; font-weight: 500;">${student.name}</td>
-                            <td style="padding: 12px;"><span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${grade}</span></td>
-                            <td style="padding: 12px; text-align: right;"><button onclick="removeStudent('${grade}', '${studentId}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
+                        <tr>
+                            <td style="font-weight: bold; color: #4a148c;">${studentId}</td>
+                            <td style="font-weight: 500;">${student.name}</td>
+                            <td><span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${grade}</span></td>
+                            <td style="text-align: right;"><button onclick="removeStudent('${grade}', '${studentId}')" style="background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
                         </tr>
                     `;
                 });
@@ -1415,10 +1458,10 @@
                     const textColor = teacher.classTeacherOf !== "N/A" ? "#4a148c" : "#777777";
 
                     tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #eee;">
-                            <td style="padding: 12px;">${teacher.teacherId}</td><td style="padding: 12px;">${teacher.name}</td><td style="padding: 12px;">${teacher.subject}</td>
-                            <td style="padding: 12px;"><span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${teacher.classTeacherOf}</span></td>
-                            <td style="padding: 12px; text-align: right;"><button onclick="removeTeacher('${key}')" style="background: #d32f2f; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
+                        <tr>
+                            <td>${teacher.teacherId}</td><td>${teacher.name}</td><td>${teacher.subject}</td>
+                            <td><span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${teacher.classTeacherOf}</span></td>
+                            <td style="text-align: right;"><button onclick="removeTeacher('${key}')" style="background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
                         </tr>
                     `;
                 });
