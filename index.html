@@ -417,7 +417,7 @@
             <div class="tab-content" id="students">
                 <div class="card">
                     <h3>👥 Add New Student</h3>
-                    <div class="grid-2">
+                    <div class="grid-3">
                         <div class="form-group">
                             <label>Grade & Class</label>
                             <select id="studentGrade">
@@ -431,6 +431,14 @@
                         <div class="form-group">
                             <label>Student Name</label>
                             <input type="text" id="studentName" placeholder="Enter name">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender (ස්ත්‍රී/පුරුෂ භාවය)</label>
+                            <select id="studentGender">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male (පිරිමි)</option>
+                                <option value="Female">Female (ගැහැණු)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Address</label>
@@ -459,12 +467,13 @@
                                 <tr>
                                     <th>Student ID</th>
                                     <th>Student Name</th>
+                                    <th>Gender</th>
                                     <th>Grade</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentListTableBody">
-                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>
+                                <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Please select a class</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -530,7 +539,7 @@
             <div class="tab-content" id="teachers">
                 <div class="card">
                     <h3>👨‍🏫 Add New Teacher</h3>
-                    <div class="grid-2">
+                    <div class="grid-3">
                         <div class="form-group">
                             <label>Teacher ID</label>
                             <input type="text" id="teacherId" placeholder="e.g. T001">
@@ -538,6 +547,14 @@
                         <div class="form-group">
                             <label>Teacher Name</label>
                             <input type="text" id="teacherName" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender (ස්ත්‍රී/පුරුෂ භාවය)</label>
+                            <select id="teacherGender">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male (පිරිමි)</option>
+                                <option value="Female">Female (ගැහැණු)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Teaching Subject</label>
@@ -563,13 +580,14 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
+                                    <th>Gender</th>
                                     <th>Subject</th>
                                     <th>Class Teacher</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="teacherListTableBody">
-                                <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Loading teachers...</td></tr>
+                                <tr><td colspan="6" style="padding: 15px; text-align: center; color: #666;">Loading teachers...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1373,17 +1391,19 @@
             const grade = document.getElementById('studentGrade').value;
             const studentId = document.getElementById('studentIdInput').value.trim();
             const name = document.getElementById('studentName').value.trim();
+            const gender = document.getElementById('studentGender').value;
             const address = document.getElementById('studentAddress').value.trim();
             const phone = document.getElementById('studentPhone').value.trim();
             
-            if (!grade || !studentId || !name) return alert("Please select a class, enter Student ID and Name!");
+            if (!grade || !studentId || !name || !gender) return alert("Please select a class, enter Student ID, Name, and Gender!");
 
             database.ref(`students/${grade}/${studentId}`).once('value', (snapshot) => {
                 if (snapshot.exists()) {
                     alert("A student with this ID already exists in this class!");
                 } else {
                     database.ref(`students/${grade}/${studentId}`).set({
-                        name: name, 
+                        name: name,
+                        gender: gender,
                         address: address || "Not Provided", 
                         phone: phone || "Not Provided"
                     }, (error) => {
@@ -1392,6 +1412,7 @@
                             alert("Student successfully added!");
                             document.getElementById('studentIdInput').value = '';
                             document.getElementById('studentName').value = ''; 
+                            document.getElementById('studentGender').value = '';
                             document.getElementById('studentAddress').value = '';
                             document.getElementById('studentPhone').value = '';
                         }
@@ -1404,19 +1425,24 @@
         function loadStudentList() {
             const grade = document.getElementById('viewStudentGrade').value;
             const tbody = document.getElementById('studentListTableBody');
-            if (!grade) { tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">Please select a class</td></tr>'; return; }
-            tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
+            if (!grade) { tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center;">Please select a class</td></tr>'; return; }
+            tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center;">Loading students...</td></tr>';
             
             database.ref('students/' + grade).on('value', (snapshot) => {
                 tbody.innerHTML = '';
-                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
+                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center;">No students found</td></tr>'; return; }
                 snapshot.forEach((childSnapshot) => {
                     const student = childSnapshot.val();
                     const studentId = childSnapshot.key; 
+                    
+                    const genderBadge = student.gender === 'Female' ? 'background: #f8bbd0; color: #c2185b;' : 'background: #bbdefb; color: #1976d2;';
+                    const genderText = student.gender || 'N/A';
+
                     tbody.innerHTML += `
                         <tr>
                             <td style="font-weight: bold; color: #4a148c;">${studentId}</td>
                             <td style="font-weight: 500;">${student.name}</td>
+                            <td><span style="${genderBadge} padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${genderText}</span></td>
                             <td><span style="background: #e1bee7; color: #4a148c; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${grade}</span></td>
                             <td style="text-align: right;"><button onclick="removeStudent('${grade}', '${studentId}')" style="background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
                         </tr>
@@ -1432,17 +1458,21 @@
         function addNewTeacher() {
             const tId = document.getElementById('teacherId').value.trim();
             const tName = document.getElementById('teacherName').value.trim();
+            const tGender = document.getElementById('teacherGender').value;
             const tSubject = document.getElementById('teacherSubject').value;
             const tClass = document.getElementById('teacherClass').value;
 
-            if (!tId || !tName || !tSubject) return alert("Please enter Teacher ID, Name, and Teaching Subject!");
+            if (!tId || !tName || !tSubject || !tGender) return alert("Please enter Teacher ID, Name, Gender, and Teaching Subject!");
 
-            database.ref('teachers').push({ teacherId: tId, name: tName, subject: tSubject, classTeacherOf: tClass }, (error) => {
+            database.ref('teachers').push({ teacherId: tId, name: tName, gender: tGender, subject: tSubject, classTeacherOf: tClass }, (error) => {
                 if (error) alert("Error saving teacher: " + error.message);
                 else {
                     alert("Teacher successfully added!");
-                    document.getElementById('teacherId').value = ''; document.getElementById('teacherName').value = '';
-                    document.getElementById('teacherSubject').value = ''; document.getElementById('teacherClass').value = 'N/A';
+                    document.getElementById('teacherId').value = ''; 
+                    document.getElementById('teacherName').value = '';
+                    document.getElementById('teacherGender').value = '';
+                    document.getElementById('teacherSubject').value = ''; 
+                    document.getElementById('teacherClass').value = 'N/A';
                 }
             });
         }
@@ -1450,16 +1480,23 @@
             const tbody = document.getElementById('teacherListTableBody');
             database.ref('teachers').on('value', (snapshot) => {
                 tbody.innerHTML = '';
-                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align: center;">No teachers found</td></tr>'; return; }
+                if (!snapshot.exists()) { tbody.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align: center;">No teachers found</td></tr>'; return; }
                 snapshot.forEach((childSnapshot) => {
                     const teacher = childSnapshot.val();
                     const key = childSnapshot.key;
+                    
                     const badgeColor = teacher.classTeacherOf !== "N/A" ? "#e1bee7" : "#eeeeee";
                     const textColor = teacher.classTeacherOf !== "N/A" ? "#4a148c" : "#777777";
+                    
+                    const genderBadge = teacher.gender === 'Female' ? 'background: #f8bbd0; color: #c2185b;' : 'background: #bbdefb; color: #1976d2;';
+                    const genderText = teacher.gender || 'N/A';
 
                     tbody.innerHTML += `
                         <tr>
-                            <td>${teacher.teacherId}</td><td>${teacher.name}</td><td>${teacher.subject}</td>
+                            <td>${teacher.teacherId}</td>
+                            <td>${teacher.name}</td>
+                            <td><span style="${genderBadge} padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${genderText}</span></td>
+                            <td>${teacher.subject}</td>
                             <td><span style="background: ${badgeColor}; color: ${textColor}; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 600;">${teacher.classTeacherOf}</span></td>
                             <td style="text-align: right;"><button onclick="removeTeacher('${key}')" style="background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em;">Remove</button></td>
                         </tr>
