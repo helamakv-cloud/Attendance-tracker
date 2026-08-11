@@ -156,18 +156,64 @@
                             <p class="dash-title">👨‍🏫 Total Teachers</p>
                         </div>
                         <div class="dash-box dash-students">
-                            <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-students-count">0</h2>
-                            <p class="dash-title">👥 Total Students</p>
-                        </div>
-                        <div class="dash-box dash-present">
                             <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-attendance-count">0</h2>
-                            <p class="dash-title">📋 Today's Present</p>
+                            <p class="dash-title">✅ Today's Present</p>
+                        </div>
+                        <div class="dash-box" style="background: linear-gradient(135deg, #f85032 0%, #e73827 100%);">
+                            <h2 style="font-size: 3em; margin-bottom: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);" id="dash-absent-count">0</h2>
+                            <p class="dash-title">❌ Today's Absent</p>
                         </div>
                     </div>
                 </div>
 
+                <div class="grid-2" style="margin-top: 25px;">
+                    <!-- Period Skippers Table -->
+                    <div class="card">
+                        <h3 style="color: #c62828;">⚠️ Period Skippers (පන්ති මගහැර ඇති සිසුන්)</h3>
+                        <div class="info-box alert" style="font-size: 0.8em;">උදෑසන පාසල් පැමිණ, එහෙත් අදාළ විෂය කාලපරිච්ඡේදය සඳහා නොපැමිණි සිසුන් මෙහි දැක්වේ.</div>
+                        <div style="overflow-x: auto; max-height: 300px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                                <thead style="position: sticky; top: 0; background: #ffebee;">
+                                    <tr style="border-bottom: 2px solid #c62828;">
+                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">ID</th>
+                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Name</th>
+                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Grade</th>
+                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Subject</th>
+                                        <th style="padding: 10px; color: #c62828; font-size: 0.9em;">Period</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skippers-body" style="font-size: 0.9em;">
+                                    <tr><td colspan="5" style="padding: 15px; text-align: center; color: #666;">Analyzing data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Leave Statistics -->
+                    <div class="card">
+                        <h3>📊 Teacher Leave Summary</h3>
+                        <div class="info-box" style="font-size: 0.8em;">අනුමත වූ (Approved) ගුරු නිවාඩු පිළිබඳ වාර්තාව.</div>
+                        <div style="overflow-x: auto; max-height: 300px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
+                                <thead style="position: sticky; top: 0; background: #e3f2fd;">
+                                    <tr style="border-bottom: 2px solid #1565c0;">
+                                        <th style="padding: 10px; color: #1565c0; font-size: 0.9em;">Teacher Name</th>
+                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">This Month</th>
+                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">This Year</th>
+                                        <th style="padding: 10px; text-align: center; color: #1565c0; font-size: 0.9em;">Short Leaves</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leave-stats-body" style="font-size: 0.9em;">
+                                    <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Loading stats...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Pending Leave Requests Table -->
                 <div class="card" style="margin-top: 25px;">
-                    <h3>Pending Leave Requests</h3>
+                    <h3>📩 Pending Leave Requests</h3>
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
                             <thead>
@@ -287,6 +333,7 @@
                                 <option value="Casual leave">Casual leave</option>
                                 <option value="Duty leave">Duty leave</option>
                                 <option value="Sick leave">Sick leave</option>
+                                <option value="Short leave">Short leave (කෙටි නිවාඩු)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -549,14 +596,12 @@
             "subject_teacher": "subject123"
         };
 
-        // Added ICT to Junior Grades
         const juniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
             "Science", "English", "History", "Geography", "Civics", 
             "Health & PE", "PTS", "Tamil Language", "Art", "Dancing", "Music", "ICT"
         ];
         
-        // Removed Information and Communication Technology (ICT) from Senior Grades
         const seniorSubjectsList = [
             "Daily School Attendance", "Buddhism", "Sinhala Language", "Mathematics", 
             "Science", "English", "History", 
@@ -586,18 +631,11 @@
 
         // --- DASHBOARD REAL-TIME STATS ---
         function loadDashboardStats() {
+            // 1. Total Teachers
             database.ref('teachers').on('value', snap => {
                 let count = 0;
                 if(snap.exists()) count = Object.keys(snap.val()).length;
                 document.getElementById('dash-teachers-count').innerText = count;
-            });
-
-            database.ref('students').on('value', snap => {
-                let count = 0;
-                if(snap.exists()) {
-                    snap.forEach(gradeSnap => { count += Object.keys(gradeSnap.val()).length; });
-                }
-                document.getElementById('dash-students-count').innerText = count;
             });
 
             const today = new Date();
@@ -606,20 +644,123 @@
             const dd = String(today.getDate()).padStart(2, '0');
             const dateStr = `${yyyy}-${mm}-${dd}`;
 
+            // 2. Attendance & Skippers Logic
             database.ref(`attendance/${dateStr}`).on('value', snap => {
                 let presentCount = 0;
+                let absentCount = 0;
+                let dailyPresent = {}; 
+                let skippers = [];
+
                 if(snap.exists()) {
+                    // First pass: Find Daily Attendance (In School)
                     snap.forEach(gradeSnap => {
-                        gradeSnap.forEach(subSnap => {
-                            subSnap.forEach(periodSnap => {
-                                periodSnap.forEach(studentSnap => {
-                                    if(studentSnap.val().status === 'Present') presentCount++;
-                                });
+                        const grade = gradeSnap.key;
+                        dailyPresent[grade] = {};
+                        const dailySubSnap = gradeSnap.child("Daily School Attendance").child("Daily Attendance");
+                        
+                        if (dailySubSnap.exists()) {
+                            dailySubSnap.forEach(studentSnap => {
+                                const val = studentSnap.val();
+                                if (val.status === 'Present') {
+                                    presentCount++;
+                                    dailyPresent[grade][studentSnap.key] = val.name;
+                                } else {
+                                    absentCount++;
+                                }
                             });
+                        }
+                    });
+
+                    // Second pass: Cross-check other periods for 'Absent' marks
+                    snap.forEach(gradeSnap => {
+                        const grade = gradeSnap.key;
+                        gradeSnap.forEach(subSnap => {
+                            const subject = subSnap.key;
+                            if (subject !== "Daily School Attendance") {
+                                subSnap.forEach(periodSnap => {
+                                    const period = periodSnap.key;
+                                    periodSnap.forEach(studentSnap => {
+                                        const stId = studentSnap.key;
+                                        const val = studentSnap.val();
+                                        
+                                        // Condition: Student came to school (in dailyPresent) BUT marked Absent in this period
+                                        if (dailyPresent[grade] && dailyPresent[grade][stId] && val.status === 'Absent') {
+                                            skippers.push({ id: stId, name: val.name, grade: grade, subject: subject, period: period });
+                                        }
+                                    });
+                                });
+                            }
                         });
                     });
                 }
+                
                 document.getElementById('dash-attendance-count').innerText = presentCount;
+                document.getElementById('dash-absent-count').innerText = absentCount;
+
+                // Populate Skippers Table
+                const skippersBody = document.getElementById('skippers-body');
+                if (skippers.length === 0) {
+                    skippersBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#2e7d32;">No skipped periods detected today! 🎉</td></tr>';
+                } else {
+                    skippersBody.innerHTML = '';
+                    skippers.forEach(s => {
+                        skippersBody.innerHTML += `<tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px; font-weight: 500;">${s.id}</td>
+                            <td style="padding: 10px;">${s.name}</td>
+                            <td style="padding: 10px;">${s.grade}</td>
+                            <td style="padding: 10px;">${s.subject}</td>
+                            <td style="padding: 10px; color:#c62828; font-weight:bold;">${s.period}</td>
+                        </tr>`;
+                    });
+                }
+            });
+
+            // 3. Load Teacher Leave Statistics
+            loadLeaveStats();
+        }
+
+        // Leave Statistics Function
+        function loadLeaveStats() {
+            database.ref('leaveRequests').on('value', snap => {
+                let stats = {};
+                const currentMonth = new Date().toISOString().slice(0,7); 
+                const currentYear = new Date().getFullYear().toString();
+
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const req = child.val();
+                        if (req.status === 'Approved') { 
+                            if (!stats[req.teacherId]) {
+                                stats[req.teacherId] = { name: req.name, monthly: 0, yearly: 0, short: 0 };
+                            }
+                            
+                            const reqYear = req.date.substring(0, 4);
+                            const reqMonth = req.date.substring(0, 7);
+
+                            if (reqYear === currentYear) stats[req.teacherId].yearly++;
+                            if (reqMonth === currentMonth) stats[req.teacherId].monthly++;
+                            if (req.type === 'Short leave') stats[req.teacherId].short++;
+                        }
+                    });
+                }
+
+                const tbody = document.getElementById('leave-stats-body');
+                tbody.innerHTML = '';
+                
+                if (Object.keys(stats).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No approved leaves recorded yet.</td></tr>';
+                    return;
+                }
+
+                for (const tId in stats) {
+                    const s = stats[tId];
+                    tbody.innerHTML += `<tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 10px; font-weight: 500;">${s.name}</td>
+                        <td style="padding: 10px; text-align:center;">${s.monthly}</td>
+                        <td style="padding: 10px; text-align:center;">${s.yearly}</td>
+                        <td style="padding: 10px; text-align:center; color:#e65100; font-weight:bold;">${s.short}</td>
+                    </tr>`;
+                }
             });
         }
 
@@ -630,7 +771,6 @@
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-            // Show Daily School Attendance option for Admin & Class Teacher
             if (currentUser.role === 'admin' || currentUser.role === 'class_teacher') {
                 subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
             }
@@ -639,7 +779,6 @@
                 schoolData[selectedClass].forEach(subject => {
                     if (subject !== "Daily School Attendance") {
                         if (currentUser.role === 'subject_teacher') {
-                            // Subject Teacher: Only show their assigned subject
                             if (currentUser.subject === subject) {
                                 const option = document.createElement('option');
                                 option.value = subject;
@@ -647,7 +786,6 @@
                                 subjectSelect.appendChild(option);
                             }
                         } else {
-                            // Admin & Class Teacher: Show ALL subjects
                             const option = document.createElement('option');
                             option.value = subject;
                             option.textContent = subject;
@@ -988,7 +1126,6 @@
             database.ref('schoolData').once('value', snap => {
                 let dbSchoolData = snap.exists() ? snap.val() : {};
                 
-                // Add default junior subjects to Grades 6-9
                 ["Grade 6", "Grade 7", "Grade 8", "Grade 9"].forEach(grade => {
                     if (!dbSchoolData[grade]) dbSchoolData[grade] = [];
                     juniorSubjectsList.forEach(sub => {
@@ -996,10 +1133,8 @@
                     });
                 });
                 
-                // Add default senior subjects to Grades 10-11 & REMOVE old ICT name
                 ["Grade 10", "Grade 11"].forEach(grade => {
                     if (!dbSchoolData[grade]) dbSchoolData[grade] = [];
-                    // Force Remove old ICT name
                     dbSchoolData[grade] = dbSchoolData[grade].filter(s => s !== "Information and Communication Technology (ICT)");
                     
                     seniorSubjectsList.forEach(sub => {
@@ -1010,11 +1145,9 @@
                 schoolData = dbSchoolData;
                 database.ref('schoolData').set(schoolData);
 
-                // Now setup categories properly
                 database.ref('subjectCategories').once('value', catSnap => {
                     let dbCategories = catSnap.exists() ? catSnap.val() : { "Grade 6": {}, "Grade 7": {}, "Grade 8": {}, "Grade 9": {}, "Grade 10": {}, "Grade 11": {} };
                     
-                    // Cleanup removed subject from categories
                     ["Grade 10", "Grade 11"].forEach(grade => {
                         if (dbCategories[grade] && dbCategories[grade]["Information and Communication Technology (ICT)"]) {
                             delete dbCategories[grade]["Information and Communication Technology (ICT)"];
@@ -1045,25 +1178,21 @@
             });
         }
 
-        // Filter Mark Attendance Subjects based on Roles
         function filterSubjects() {
             const selectedClass = document.getElementById('selectClass').value;
             const subjectSelect = document.getElementById('selectSubject');
             if (!subjectSelect) return;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-            // Admin and Class Teacher can mark Daily School Attendance
             if (currentUser.role === 'admin' || currentUser.role === 'class_teacher') {
                 subjectSelect.innerHTML += '<option value="Daily School Attendance">🏫 Daily School Attendance</option>';
             }
 
-            // Subject Teacher: Direct Injection
             if (currentUser.role === 'subject_teacher') {
                 if (currentUser.subject && currentUser.subject !== "N/A") {
                     subjectSelect.innerHTML += `<option value="${currentUser.subject}" selected>${currentUser.subject}</option>`;
                 }
             } else {
-                // For Admin & Class Teacher
                 if (selectedClass && schoolData[selectedClass]) {
                     schoolData[selectedClass].forEach(subject => {
                         if(subject !== "Daily School Attendance") {
@@ -1103,7 +1232,6 @@
 
             if (selectedClass && schoolData[selectedClass]) {
                 schoolData[selectedClass].forEach(subject => {
-                    // Show ONLY Bucket subjects
                     if (subjectCategoriesData[selectedClass] && subjectCategoriesData[selectedClass][subject] !== "Core" && subject !== "Daily School Attendance") {
                         const option = document.createElement('option');
                         option.value = subject;
