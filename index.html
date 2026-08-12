@@ -54,7 +54,7 @@
         .btn-danger { background: linear-gradient(135deg, #e53935 0%, #c62828 100%); color: white; }
         
         /* BOXES & DASHBOARD CARDS */
-        .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; }
+        .info-box { background: #f3e5f5; padding: 12px; border-radius: 6px; color: #4a148c; margin-bottom: 15px; font-size: 0.9em; border-left: 4px solid #8e24aa; text-align: left; }
         .info-box.alert { background: #ffebee; color: #c62828; border-left-color: #c62828; }
         .student-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         
@@ -77,10 +77,10 @@
         .card h3 { color: #6a1b9a; margin-bottom: 15px; font-size: 1.2em; display: flex; align-items: center; gap: 8px; }
         .grid-2, .grid-3 { display: grid; grid-template-columns: 1fr; gap: 15px; }
         
-        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left; }
         .modern-table thead { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
         .modern-table th { padding: 12px; color: #4a148c; font-weight: 600; font-size: 0.9em; text-align: left; }
-        .modern-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; }
+        .modern-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9em; text-align: left; }
         .modern-table tr:last-child td { border-bottom: none; }
         .modern-table tbody tr:hover { background: #fcf9fd; }
 
@@ -136,7 +136,7 @@
                 <button class="btn btn-primary btn-full" onclick="login()">Login</button>
                 
                 <div style="margin-top: 20px; font-size: 0.85em; color: #888; font-weight: 500;">
-                    Developer -Kelum Konara 
+                    Developer - Kelum Konara | 0714469232
                 </div>
             </div>
         </div>
@@ -196,47 +196,48 @@
                     </div>
                 </div>
 
-                <div class="grid-2">
-                    <!-- Period Skippers Table -->
-                    <div class="card">
-                        <h3 style="color: #c62828;">⚠️ Period Skippers</h3>
-                        <div class="info-box alert" style="font-size: 0.8em; padding: 8px;">පාසල් පැමිණ පන්ති මගහැර ඇති සිසුන්.</div>
-                        <div style="overflow-x: auto; max-height: 280px;">
-                            <table class="modern-table">
-                                <thead style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);">
-                                    <tr>
-                                        <th style="color: #c62828; padding: 8px;">ID</th>
-                                        <th style="color: #c62828; padding: 8px;">Name</th>
-                                        <th style="color: #c62828; padding: 8px;">Grade</th>
-                                        <th style="color: #c62828; padding: 8px;">Period</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="skippers-body">
-                                    <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Analyzing data...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Existing Pending Leave Requests Table -->
-                    <div class="card">
-                        <h3>📩 Pending Leaves</h3>
-                        <div style="overflow-x: auto; max-height: 280px;">
-                            <table class="modern-table">
-                                <thead>
-                                    <tr>
-                                        <th style="padding: 8px;">Name</th>
-                                        <th style="padding: 8px;">Type / Date</th>
-                                        <th style="padding: 8px; text-align: right;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adminLeaveRequestsBody">
-                                    <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <!-- වගු සඳහා සම්පූර්ණ ඉඩ ලබාදීමට grid-2 ඉවත් කර ඇත -->
+                <!-- Period Skippers Table -->
+                <div class="card">
+                    <h3 style="color: #c62828;">⚠️ Period Skippers</h3>
+                    <div class="info-box alert" style="font-size: 0.8em; padding: 8px;">පාසල් පැමිණ පන්ති මගහැර ඇති සිසුන්.</div>
+                    <div style="overflow-x: auto; max-height: 280px;">
+                        <table class="modern-table">
+                            <thead style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);">
+                                <tr>
+                                    <th style="color: #c62828; padding: 12px; width: 15%;">ID</th>
+                                    <th style="color: #c62828; padding: 12px; width: 35%;">Name</th>
+                                    <th style="color: #c62828; padding: 12px; width: 20%;">Grade</th>
+                                    <th style="color: #c62828; padding: 12px; width: 30%;">Period</th>
+                                </tr>
+                            </thead>
+                            <tbody id="skippers-body">
+                                <tr><td colspan="4" style="padding: 15px; text-align: center; color: #666;">Analyzing data...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
+                <!-- Pending Leave Requests Table -->
+                <div class="card">
+                    <h3>📩 Pending Leaves</h3>
+                    <div class="info-box" style="font-size: 0.8em; padding: 8px;">අනුමත කිරීමට බලාපොරොත්තුවෙන් පවතින නිවාඩු ඉල්ලුම්පත්‍ර.</div>
+                    <div style="overflow-x: auto; max-height: 280px;">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 12px; width: 30%;">Name & Subject</th>
+                                    <th style="padding: 12px; width: 40%;">Leave Type / Date / Reason</th>
+                                    <th style="padding: 12px; text-align: right; width: 30%;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLeaveRequestsBody">
+                                <tr><td colspan="3" style="padding: 15px; text-align: center; color: #666;">Loading requests...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
 
             <!-- VIEW ATTENDANCE TAB -->
@@ -595,7 +596,7 @@
             </div>
 
             <div class="footer-credit" align="justify">
-                Developer | Kelum Konara 
+                © Kelum Konara |Smart Soft 
             </div>
         </div>
     </div>
