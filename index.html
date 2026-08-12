@@ -601,6 +601,15 @@
     </div>
 
     <script>
+        
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered Successfully!'))
+                    .catch(err => console.error('Service Worker Registration Failed:', err));
+            });
+        }
         // FIREBASE CONFIGURATION
         const firebaseConfig = {
             databaseURL: "https://smart-attendance-e2b89-default-rtdb.firebaseio.com"
